@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Счётчик</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        h2 { font-size: 48px; margin: 20px; }
+        button {
+            font-size: 24px;
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Счёт: <span id="count">0</span></h2>
+        <button onclick="onDec()">-</button>
+        <button onclick="onInc()">+</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Применяем тему телеги
+        document.body.style.backgroundColor = tg.themeParams.bg_color || '#fff';
+        document.body.style.color = tg.themeParams.text_color || '#000';
+        
+        let count = 0;
+        const counter = document.getElementById("count");
+
+        function onDec() {
+            count--;
+            counter.textContent = count;
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function onInc() {
+            count++;
+            counter.textContent = count;
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        tg.ready();
+    </script>
+</body>
+</html>
