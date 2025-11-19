@@ -726,29 +726,61 @@
     let selectedNickSource = null;
     
     // TELEGRAM WEB APP
-    let tg = window.Telegram.WebApp;
+    let tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
       tg.expand();
+      tg.ready();
+      console.log('✅ Telegram WebApp инициализирован');
+      console.log('TG Data:', tg.initDataUnsafe);
+    } else {
+      console.warn('⚠️ Telegram WebApp не инициализирован - открыто не из Telegram?');
     }
 
-    // ========== TELEGRAM AUTH (СТРОКИ 32-70) ==========
+
+    // ========== TELEGRAM AUTH (СТРОКИ 32-90) ==========
     function getTelegramUser() {
-      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        return tg.initDataUnsafe.user;
+      // Проверяем несколько способов получения данных
+      try {
+        // Способ 1: initDataUnsafe (основной)
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+          return tg.initDataUnsafe.user;
+        }
+        
+        // Способ 2: initData (если доступно)
+        if (tg && tg.initData) {
+          const params = new URLSearchParams(tg.initData);
+          const userJson = params.get('user');
+          if (userJson) {
+            return JSON.parse(userJson);
+          }
+        }
+        
+        return null;
+      } catch (e) {
+        console.error('Ошибка получения TG user:', e);
+        return null;
       }
-      return null;
     }
 
     function getTelegramUsername() {
       const user = getTelegramUser();
-      if (user && user.username) {
-        return '@' + user.username;
+      
+      if (user) {
+        // Приоритет: username > first_name + last_name > first_name
+        if (user.username) {
+          return user.username;
+        }
+        if (user.first_name && user.last_name) {
+          return user.first_name + ' ' + user.last_name;
+        }
+        if (user.first_name) {
+          return user.first_name;
+        }
       }
-      if (user && user.first_name) {
-        return user.first_name;
-      }
+      
       return '';
     }
+
 
     // ========== MODAL FUNCTIONS (СТРОКИ 72-100) ==========
     function openModal(title, defaultValue = '', callback) {
@@ -850,13 +882,19 @@
       document.getElementById('telegram-nick-section').style.display = 'block';
       
       const tgNick = getTelegramUsername();
-      if (tgNick) {
+      const userObj = getTelegramUser();
+      
+      console.log('TG User Object:', userObj);
+      console.log('TG Username:', tgNick);
+      
+      if (tgNick && tgNick.trim()) {
         document.getElementById('telegram-nick-display').innerText = tgNick;
       } else {
-        document.getElementById('telegram-nick-display').innerText = '❌ Ник не найден';
+        document.getElementById('telegram-nick-display').innerHTML = '❌ Ник не найден<br><small style="font-size:11px;color:#999;">Убедись что открываешь из Telegram бота</small>';
         selectedNickSource = null;
       }
     }
+
 
     function completeOnboarding() {
       let nick = '';
@@ -1151,3 +1189,4 @@
   </script>
 </body>
 </html>
+
