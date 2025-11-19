@@ -518,7 +518,7 @@
     <button onclick="closeWelcome()" style="margin-top:14px;">Погнали! 🚀</button>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal для ввода текста -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <h2 id="modal-title">Название</h2>
@@ -529,6 +529,42 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal ПЕРВОГО ВХОДА (выбор ника и валюты) -->
+  <div id="onboarding-modal" class="modal active">
+    <div class="modal-content">
+      <h2 style="text-align:center;margin-bottom:20px;">🚗 Добро пожаловать в GARAGE STATS!</h2>
+      
+      <div class="input-group">
+        <label style="margin-bottom:10px;">Укажи свой ник:</label>
+        <input type="text" id="onboarding-nick" placeholder="Например: Vovka_Garagist" maxlength="30" style="width:100%;margin-bottom:12px;">
+      </div>
+
+      <div class="input-group">
+        <label style="margin-bottom:10px;">Выбери валюту по умолчанию:</label>
+        <div class="currency-selector" style="margin-top:10px;">
+          <div class="currency-btn active" onclick="selectOnboardingCurrency('RUB')" id="onboard-rub">
+            <span class="currency-flag">🇷🇺</span>
+            <div>RUB</div>
+            <div style="font-size:12px;color:#999;">₽</div>
+          </div>
+          <div class="currency-btn" onclick="selectOnboardingCurrency('BYN')" id="onboard-byn">
+            <span class="currency-flag">🇧🇾</span>
+            <div>BYN</div>
+            <div style="font-size:12px;color:#999;">Br</div>
+          </div>
+          <div class="currency-btn" onclick="selectOnboardingCurrency('USD')" id="onboard-usd">
+            <span class="currency-flag">🇺🇸</span>
+            <div>USD</div>
+            <div style="font-size:12px;color:#999;">$</div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="completeOnboarding()" style="width:100%;margin-top:20px;">Начнём! 🚀</button>
+    </div>
+  </div>
+
 
   <div class="main-content">
     <!-- КАЛЬКУЛЯТОР -->
@@ -798,19 +834,59 @@
       return { eco: custom.eco, normal: custom.normal, fast: custom.fast };
     }
 
-    // ========== WELCOME FUNCTIONS (СТРОКИ 182-200) ==========
+    // ========== WELCOME & ONBOARDING FUNCTIONS (СТРОКИ 182-240) ==========
+    let selectedOnboardingCurrency = 'RUB';
+
+    function selectOnboardingCurrency(curr) {
+      selectedOnboardingCurrency = curr;
+      // Обновляем визуально выбранную кнопку
+      document.getElementById('onboard-rub').classList.remove('active');
+      document.getElementById('onboard-byn').classList.remove('active');
+      document.getElementById('onboard-usd').classList.remove('active');
+      document.getElementById('onboard-' + curr.toLowerCase()).classList.add('active');
+    }
+
+    function completeOnboarding() {
+      const nick = document.getElementById('onboarding-nick').value.trim();
+      if (!nick) {
+        alert('Укажи свой ник!');
+        return;
+      }
+      
+      // Сохраняем ник и валюту
+      setNick(nick);
+      setCurrency(selectedOnboardingCurrency);
+      lastCurrency = selectedOnboardingCurrency;
+      
+      // Закрываем модальное окно
+      document.getElementById('onboarding-modal').classList.remove('active');
+      document.body.style.overflow = "";
+      
+      // Обновляем отображение
+      updateCurrencyDisplay();
+      updatePriceDefault();
+      
+      // Отмечаем что приложение уже использовалось
+      localStorage.setItem('gs-welcomed', '1');
+    }
+
+    function showOnboarding() {
+      if (!localStorage.getItem('gs-welcomed')) {
+        document.getElementById('onboarding-modal').classList.add('active');
+        document.body.style.overflow = "hidden";
+      }
+    }
+
     function showWelcome() {
       if (!localStorage.getItem('gs-welcomed')) {
         document.getElementById('welcome').classList.remove('hidden');
         document.body.style.overflow = "hidden";
       }
     }
-    function closeWelcome() {
-      document.getElementById('welcome').classList.add('hidden');
-      localStorage.setItem('gs-welcomed', '1');
-      document.body.style.overflow = "";
-    }
-    showWelcome();
+
+    // При загрузке страницы показываем онбординг если первый раз
+    showOnboarding();
+
 
     // ========== TAB FUNCTIONS (СТРОКИ 202-230) ==========
     function switchTab(tab) {
@@ -997,10 +1073,12 @@
       }
     }
 
-    // ========== INIT (СТРОКИ 432-436) ==========
+    // ========== INIT (СТРОКИ 432-438) ==========
     updateCurrencyDisplay();
     updatePriceDefault();
     loadCustomConsumptionUI();
+    // Онбординг покажется в showOnboarding() если это первый раз
   </script>
 </body>
 </html>
+
