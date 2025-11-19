@@ -513,14 +513,6 @@
     <div class="app-subtitle">⚡ FUEL TRACKER ⚡</div>
   </div>
 
-  <div id="welcome" class="welcome hidden">
-    <h2>🚗 Добро пожаловать!</h2>
-    <p>Это твой помощник для контроля расходов на авто.<br>
-    Веди и анализируй все свои траты и поездки.<br>
-    <b>Вода камень точет</b> 💧</p>
-    <button onclick="closeWelcome()" style="margin-top:14px;">Погнали! 🚀</button>
-  </div>
-
   <!-- Modal для ввода текста -->
   <div id="modal" class="modal">
     <div class="modal-content">
@@ -708,7 +700,7 @@
   </div>
 
   <script>
-    // ========== КОНФИГ (СТРОКИ 1-30) ==========
+    // ========== КОНФИГ (СТРОКИ 1-35) ==========
     const consumptionByType = { eco: 5.7, normal: 7.2, fast: 10.5 };
     const currencySymbols = { RUB: '₽', BYN: 'Br', USD: '$' };
     const defaultPrices = { RUB: 55, BYN: 2.6, USD: 1.8 };
@@ -725,64 +717,71 @@
     let selectedOnboardingCurrency = 'RUB';
     let selectedNickSource = null;
     
-    // TELEGRAM WEB APP
+    // TELEGRAM WEB APP - ПРАВИЛЬНАЯ ИНИЦИАЛИЗАЦИЯ
     let tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
       tg.expand();
       tg.ready();
-      console.log('✅ Telegram WebApp инициализирован');
-      console.log('TG Data:', tg.initDataUnsafe);
+      console.log('✅ Telegram WebApp готов');
+      console.log('📱 initDataUnsafe:', tg.initDataUnsafe);
     } else {
-      console.warn('⚠️ Telegram WebApp не инициализирован - открыто не из Telegram?');
+      console.warn('⚠️ Telegram WebApp не инициализирован');
     }
 
-
-    // ========== TELEGRAM AUTH (СТРОКИ 32-90) ==========
+    // ========== TELEGRAM AUTH (СТРОКИ 37-110) ==========
     function getTelegramUser() {
-      // Проверяем несколько способов получения данных
       try {
-        // Способ 1: initDataUnsafe (основной)
         if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-          return tg.initDataUnsafe.user;
+          const user = tg.initDataUnsafe.user;
+          console.log('✅ TG User найден:', user);
+          return user;
         }
-        
-        // Способ 2: initData (если доступно)
-        if (tg && tg.initData) {
-          const params = new URLSearchParams(tg.initData);
-          const userJson = params.get('user');
-          if (userJson) {
-            return JSON.parse(userJson);
-          }
-        }
-        
+        console.warn('⚠️ TG User не найден в initDataUnsafe');
         return null;
       } catch (e) {
-        console.error('Ошибка получения TG user:', e);
+        console.error('❌ Ошибка getTelegramUser:', e);
         return null;
       }
     }
 
     function getTelegramUsername() {
-      const user = getTelegramUser();
-      
-      if (user) {
-        // Приоритет: username > first_name + last_name > first_name
-        if (user.username) {
+      try {
+        const user = getTelegramUser();
+        
+        if (!user) {
+          console.warn('⚠️ User объект пуст');
+          return '';
+        }
+        
+        // Приоритет: username → first_name + last_name → first_name → ID
+        if (user.username && user.username.trim()) {
+          console.log('✅ Берем username:', user.username);
           return user.username;
         }
-        if (user.first_name && user.last_name) {
-          return user.first_name + ' ' + user.last_name;
-        }
+        
         if (user.first_name) {
-          return user.first_name;
+          let fullName = user.first_name;
+          if (user.last_name) {
+            fullName += ' ' + user.last_name;
+          }
+          console.log('✅ Берем имя:', fullName);
+          return fullName;
         }
+        
+        if (user.id) {
+          console.log('✅ Берем ID:', user.id);
+          return 'User_' + user.id;
+        }
+        
+        console.warn('⚠️ Не удалось получить ник');
+        return '';
+      } catch (e) {
+        console.error('❌ Ошибка getTelegramUsername:', e);
+        return '';
       }
-      
-      return '';
     }
 
-
-    // ========== MODAL FUNCTIONS (СТРОКИ 72-100) ==========
+    // ========== MODAL FUNCTIONS (СТРОКИ 112-150) ==========
     function openModal(title, defaultValue = '', callback) {
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-input').value = defaultValue;
@@ -790,10 +789,12 @@
       document.getElementById('modal').classList.add('active');
       modalCallback = callback;
     }
+    
     function closeModal() {
       document.getElementById('modal').classList.remove('active');
       modalCallback = null;
     }
+    
     function confirmModal() {
       const value = document.getElementById('modal-input').value.trim();
       if (value && modalCallback) {
@@ -801,12 +802,13 @@
       }
       closeModal();
     }
+    
     document.getElementById('modal-input').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') confirmModal();
       if (e.key === 'Escape') closeModal();
     });
 
-    // ========== CURRENCY FUNCTIONS (СТРОКИ 102-160) ==========
+    // ========== CURRENCY FUNCTIONS (СТРОКИ 152-210) ==========
     function convertPrice(amount, fromCurrency, toCurrency) {
       if (fromCurrency === toCurrency) return parseFloat(amount).toFixed(2);
       const toRUB = amount / exchangeRates[fromCurrency];
@@ -816,6 +818,7 @@
     function getCurrency() {
       return localStorage.getItem('gs-currency') || 'RUB';
     }
+    
     function setCurrency(curr) {
       localStorage.setItem('gs-currency', curr);
     }
@@ -856,7 +859,7 @@
       document.getElementById('price').value = defaultPrices[curr];
     }
 
-    // ========== ONBOARDING FUNCTIONS (СТРОКИ 162-280) ==========
+    // ========== ONBOARDING FUNCTIONS (СТРОКИ 212-330) ==========
     function selectOnboardingCurrency(curr) {
       selectedOnboardingCurrency = curr;
       document.getElementById('onboard-rub').classList.remove('active');
@@ -865,7 +868,6 @@
       document.getElementById('onboard-' + curr.toLowerCase()).classList.add('active');
     }
 
-    // Юзер выбрал "Свой ник"
     function useManualNick() {
       selectedNickSource = 'manual';
       document.getElementById('manual-nick-section').style.display = 'block';
@@ -875,87 +877,89 @@
       }, 100);
     }
 
-    // Юзер выбрал "Из Telegram"
     function useTelegramNick() {
       selectedNickSource = 'telegram';
       document.getElementById('manual-nick-section').style.display = 'none';
       document.getElementById('telegram-nick-section').style.display = 'block';
       
-      const tgNick = getTelegramUsername();
       const userObj = getTelegramUser();
+      const tgNick = getTelegramUsername();
       
-      console.log('TG User Object:', userObj);
-      console.log('TG Username:', tgNick);
+      console.log('📱 Попытка получить TG ник');
+      console.log('📱 User Object:', userObj);
+      console.log('📱 Username:', tgNick);
       
       if (tgNick && tgNick.trim()) {
         document.getElementById('telegram-nick-display').innerText = tgNick;
+        console.log('✅ Ник установлен в UI:', tgNick);
       } else {
-        document.getElementById('telegram-nick-display').innerHTML = '❌ Ник не найден<br><small style="font-size:11px;color:#999;">Убедись что открываешь из Telegram бота</small>';
+        document.getElementById('telegram-nick-display').innerHTML = `
+          ❌ Ник не найден<br>
+          <small style="font-size:11px;color:#999;">Данные TG недоступны</small>
+        `;
         selectedNickSource = null;
+        console.error('❌ Не получилось получить ник из TG');
       }
     }
-
 
     function completeOnboarding() {
       let nick = '';
 
-      // Если выбран Telegram ник
       if (selectedNickSource === 'telegram') {
         nick = getTelegramUsername();
-        if (!nick) {
+        console.log('💾 Сохраняем TG ник:', nick);
+        
+        if (!nick || !nick.trim()) {
           alert('Ник Telegram не найден! Выбери свой ник.');
           selectedNickSource = null;
           return;
         }
       } 
-      // Если выбран ручной ввод
       else if (selectedNickSource === 'manual') {
         nick = document.getElementById('onboarding-nick').value.trim();
+        console.log('💾 Сохраняем ручной ник:', nick);
+        
         if (!nick) {
           alert('Укажи свой ник!');
           return;
         }
       } 
-      // Если ничего не выбрано
       else {
-        alert('Выбери источник ника - "Свой ник" или "Из Telegram"!');
+        alert('Выбери источник ника!');
         return;
       }
       
-      // Сохраняем
       setNick(nick);
       setCurrency(selectedOnboardingCurrency);
       lastCurrency = selectedOnboardingCurrency;
       
-      // ГЛАВНОЕ: флаг что онбординг прошел
       localStorage.setItem('gs-onboarded', '1');
       
-      // Закрываем модал
       document.getElementById('onboarding-modal').classList.remove('active');
       document.body.style.overflow = "";
       
-      // Обновляем отображение
       updateCurrencyDisplay();
       updatePriceDefault();
       updateProfile();
     }
 
     function showOnboarding() {
-      // ПРОВЕРЯЕМ: если онбординг уже прошел - НЕ показываем!
       if (!localStorage.getItem('gs-onboarded')) {
         document.getElementById('onboarding-modal').classList.add('active');
         document.body.style.overflow = "hidden";
       }
     }
 
-    // ========== USER INFO FUNCTIONS (СТРОКИ 282-320) ==========
+    // ========== USER INFO FUNCTIONS (СТРОКИ 332-370) ==========
     function getNick() {
       return localStorage.getItem('gs-nick') || 'Не указан';
     }
+    
     function setNick(nick) {
       localStorage.setItem('gs-nick', nick);
       updateProfile();
     }
+    
     function editNick() {
       openModal('Укажи свой ник:', getNick(), setNick);
     }
@@ -963,15 +967,17 @@
     function getCar() {
       return localStorage.getItem('gs-car') || 'Не указана';
     }
+    
     function setCar(car) {
       localStorage.setItem('gs-car', car);
       updateProfile();
     }
+    
     function editCar() {
       openModal('Укажи свою машину:', getCar(), setCar);
     }
 
-    // ========== CUSTOM CONSUMPTION FUNCTIONS (СТРОКИ 322-360) ==========
+    // ========== CUSTOM CONSUMPTION FUNCTIONS (СТРОКИ 372-410) ==========
     function loadCustomConsumption() {
       return {
         eco: parseFloat(localStorage.getItem('gs-cons-eco')) || 5.7,
@@ -979,6 +985,7 @@
         fast: parseFloat(localStorage.getItem('gs-cons-fast')) || 10.5
       };
     }
+    
     function saveCustomConsumption() {
       const eco = parseFloat(document.getElementById('custom-eco').value) || 5.7;
       const normal = parseFloat(document.getElementById('custom-normal').value) || 7.2;
@@ -1004,7 +1011,7 @@
       document.getElementById('custom-fast').value = cons.fast;
     }
 
-    // ========== TAB FUNCTIONS (СТРОКИ 362-390) ==========
+    // ========== TAB FUNCTIONS (СТРОКИ 412-440) ==========
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
@@ -1017,7 +1024,7 @@
       }
     }
 
-    // ========== CALCULATOR FUNCTIONS (СТРОКИ 392-420) ==========
+    // ========== CALCULATOR FUNCTIONS (СТРОКИ 442-470) ==========
     function updateConsumption() {
       const t = document.getElementById('driveType').value;
       const consumptions = getConsumptionByType();
@@ -1046,10 +1053,11 @@
       return {cons, distance, price, liters, cost, currency};
     }
 
-    // ========== FAVORITES FUNCTIONS (СТРОКИ 422-540) ==========
+    // ========== FAVORITES FUNCTIONS (СТРОКИ 472-590) ==========
     function loadFavorites() {
       return JSON.parse(localStorage.getItem('gs-fav-trips') || '[]');
     }
+    
     function saveFavorites(favs) {
       localStorage.setItem('gs-fav-trips', JSON.stringify(favs));
     }
@@ -1132,7 +1140,7 @@
     }
     renderFavorites();
 
-    // ========== PROFILE FUNCTIONS (СТРОКИ 542-580) ==========
+    // ========== PROFILE FUNCTIONS (СТРОКИ 592-630) ==========
     function updateProfile() {
       const favs = loadFavorites();
       const currentCurrency = getCurrency();
@@ -1165,7 +1173,7 @@
       document.getElementById('profile-car').innerText = getCar();
     }
 
-    // ========== TELEGRAM & CLEAR (СТРОКИ 582-600) ==========
+    // ========== TELEGRAM & CLEAR (СТРОКИ 632-650) ==========
     function openTelegram() {
       window.open(telegramLink, '_blank');
     }
@@ -1184,9 +1192,8 @@
       }
     }
 
-    // ========== INIT (СТРОКИ 602-605) ==========
+    // ========== INIT (СТРОКИ 652-655) ==========
     showOnboarding();
   </script>
 </body>
 </html>
-
