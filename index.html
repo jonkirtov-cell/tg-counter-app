@@ -504,12 +504,32 @@
   </style>
 </head>
 <body>
-  <div class="logo">
-    <!-- Твой новый логотип -->
-    <img src="data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='200' height='200' fill='%23262c32' rx='20'/%3E%3Cg transform='translate(50 35)'%3E%3Cpath d='M 0 40 L 20 0 L 100 0 L 120 40 Z' fill='%2367ff84' stroke='%23222' stroke-width='3'/%3E%3Crect x='5' y='15' width='110' height='35' fill='%23262c32' stroke='%23222' stroke-width='2.5' rx='3'/%3E%3Cline x1='10' y1='22' x2='110' y2='22' stroke='%2367ff84' stroke-width='1.5'/%3E%3Cline x1='10' y1='30' x2='110' y2='30' stroke='%2367ff84' stroke-width='1.5'/%3E%3Cline x1='10' y1='38' x2='110' y2='38' stroke='%2367ff84' stroke-width='1.5'/%3E%3Crect x='2' y='60' width='100' height='25' fill='%23000' rx='2'/%3E%3C!-- Gas pump --%3E%3Crect x='8' y='65' width='8' height='15' fill='%2367ff84' rx='1'/%3E%3Crect x='10' y='60' width='4' height='6' fill='%2367ff84' rx='1'/%3E%3C!-- Speedometer --%3E%3Ccircle cx='60' cy='72' r='10' fill='none' stroke='%2367ff84' stroke-width='1.5'/%3E%3Ccircle cx='60' cy='72' r='1' fill='%2367ff84'/%3E%3Cline x1='60' y1='72' x2='68' y2='68' stroke='%2367ff84' stroke-width='1.5'/%3E%3C/g%3E%3C/svg%3E" alt="GARAGE STATS" class="logo-img">
+    <div class="logo">
+    <!-- Логотип гаража -->
+    <svg class="logo-img" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="120" fill="#262c32" rx="15"/>
+      <g transform="translate(15, 15)">
+        <!-- Крыша гаража -->
+        <path d="M 10 45 L 45 10 L 80 45 Z" fill="#67ff84"/>
+        <!-- Корпус гаража -->
+        <rect x="10" y="45" width="70" height="40" fill="#262c32" stroke="#67ff84" stroke-width="2"/>
+        <!-- Двери гаража -->
+        <rect x="15" y="50" width="30" height="30" fill="#1a1f24" stroke="#67ff84" stroke-width="1.5"/>
+        <rect x="50" y="50" width="30" height="30" fill="#1a1f24" stroke="#67ff84" stroke-width="1.5"/>
+        <line x1="45" y1="50" x2="45" y2="80" stroke="#67ff84" stroke-width="1.5"/>
+        <!-- Полосы на дверях -->
+        <line x1="15" y1="58" x2="45" y2="58" stroke="#67ff84" stroke-width="0.8"/>
+        <line x1="15" y1="66" x2="45" y2="66" stroke="#67ff84" stroke-width="0.8"/>
+        <line x1="15" y1="74" x2="45" y2="74" stroke="#67ff84" stroke-width="0.8"/>
+        <line x1="50" y1="58" x2="80" y2="58" stroke="#67ff84" stroke-width="0.8"/>
+        <line x1="50" y1="66" x2="80" y2="66" stroke="#67ff84" stroke-width="0.8"/>
+        <line x1="50" y1="74" x2="80" y2="74" stroke="#67ff84" stroke-width="0.8"/>
+      </g>
+    </svg>
     <div class="app-title">GARAGE STATS</div>
     <div class="app-subtitle">⚡ FUEL TRACKER ⚡</div>
   </div>
+
 
   <div id="welcome" class="welcome hidden">
     <h2>🚗 Добро пожаловать!</h2>
@@ -977,3 +997,4 @@
   </script>
 </body>
 </html>
+
