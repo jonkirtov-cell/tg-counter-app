@@ -16,7 +16,6 @@
       overflow-x: hidden;
     }
 
-    /* Animations */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -29,9 +28,9 @@
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.05); }
     }
-    @keyframes shimmer {
-      0% { background-position: -1000px 0; }
-      100% { background-position: 1000px 0; }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .logo { 
@@ -132,7 +131,6 @@
       display: block; 
     }
 
-    /* Card styles */
     .card { 
       background: linear-gradient(135deg, #32383e 0%, #2e343a 100%);
       border-radius: 14px; 
@@ -161,19 +159,19 @@
       margin-bottom: 8px;
       color: #ccc;
     }
-    input[type="number"] { 
-      width: 70px; 
+    input[type="number"], input[type="text"] { 
+      width: 100%;
+      max-width: 300px;
       border-radius: 6px; 
       border: 1px solid #555; 
-      padding: 8px; 
-      font-size: 16px; 
-      margin-left: 8px;
+      padding: 8px 10px; 
+      font-size: 16px;
       background: #262c32;
       color: #67ff84;
       font-weight: bold;
       transition: all 0.2s ease;
     }
-    input[type="number"]:focus {
+    input[type="number"]:focus, input[type="text"]:focus {
       outline: none;
       border-color: #67ff84;
       box-shadow: 0 0 8px rgba(103, 255, 132, 0.3);
@@ -189,9 +187,6 @@
       cursor: pointer;
       transition: all 0.2s ease;
       font-family: inherit;
-    }
-    select:hover {
-      border-color: #67ff84;
     }
     select:focus {
       outline: none;
@@ -280,6 +275,51 @@
       margin-bottom: 4px;
     }
 
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: linear-gradient(135deg, #32383e 0%, #2e343a 100%);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 350px;
+      width: 90%;
+      border: 2px solid #67ff84;
+      animation: scaleIn 0.3s ease-out;
+    }
+    .modal-content h2 {
+      margin: 0 0 16px 0;
+      color: #67ff84;
+      font-size: 1.3em;
+    }
+    .modal-content input {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-bottom: 16px;
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .modal-buttons button {
+      flex: 1;
+    }
+
     /* Fav list */
     .fav-list { 
       margin-top: 16px; 
@@ -341,7 +381,6 @@
       font-size: 1.05em;
     }
 
-    /* Profile section */
     .profile-card {
       background: linear-gradient(135deg, #32383e 0%, #2e343a 100%);
       border-radius: 14px;
@@ -394,6 +433,52 @@
       animation: slideInUp 0.4s ease-out;
     }
 
+    .user-info {
+      background: rgba(103, 255, 132, 0.05);
+      border-left: 3px solid #67ff84;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 12px 0;
+      font-size: 15px;
+      word-break: break-word;
+    }
+    .user-info-label {
+      color: #999;
+      font-size: 13px;
+    }
+    .user-info-value {
+      color: #67ff84;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .custom-consumption {
+      background: rgba(103, 255, 132, 0.05);
+      border-left: 3px solid #67ff84;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+    .custom-consumption h4 {
+      margin: 0 0 12px 0;
+      color: #67ff84;
+    }
+    .consumption-input-group {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0;
+      align-items: center;
+    }
+    .consumption-input-group label {
+      min-width: 80px;
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+    .consumption-input-group input {
+      flex: 1;
+      max-width: 100px !important;
+    }
+
     @media (max-width: 500px) {
       .currency-selector {
         grid-template-columns: repeat(3, 1fr);
@@ -414,6 +499,9 @@
       .fav-entry-buttons button {
         flex: 1;
       }
+      .modal-content {
+        width: 95%;
+      }
     }
   </style>
 </head>
@@ -430,6 +518,18 @@
     Веди и анализируй все свои траты и поездки.<br>
     <b>Вода камень точет</b> 💧</p>
     <button onclick="closeWelcome()" style="margin-top:14px;">Погнали! 🚀</button>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2 id="modal-title">Название</h2>
+      <input type="text" id="modal-input" placeholder="Введи текст">
+      <div class="modal-buttons">
+        <button class="secondary" onclick="closeModal()">Отмена</button>
+        <button onclick="confirmModal()">OK</button>
+      </div>
+    </div>
   </div>
 
   <div class="main-content">
@@ -458,7 +558,7 @@
           <button type="button" onclick="calculate()" style="width:100%;">Рассчитать</button>
         </form>
         <div id="calc-result"></div>
-        <button type="button" style="margin-top:10px;width:100%;" onclick="addFavoriteTrip()">☆ В избранное</button>
+        <button type="button" style="margin-top:10px;width:100%;" onclick="openFavModal()">☆ В избранное</button>
       </div>
 
       <div class="card">
@@ -478,35 +578,70 @@
 
     <!-- ПРОФИЛЬ -->
     <div id="profile-section" class="section">
+      <!-- User Info -->
       <div class="profile-card">
-        <h3>👤 Профиль</h3>
-        
-        <div style="margin:20px 0;">
-          <label style="margin-bottom:12px;display:block;color:#ccc;">Выбери валюту:</label>
-          <div class="currency-selector">
-            <div class="currency-btn active" onclick="selectCurrency('RUB')">
-              <span class="currency-flag">🇷🇺</span>
-              <div>RUB</div>
-              <div style="font-size:12px;color:#999;">₽</div>
-            </div>
-            <div class="currency-btn" onclick="selectCurrency('BYN')">
-              <span class="currency-flag">🇧🇾</span>
-              <div>BYN</div>
-              <div style="font-size:12px;color:#999;">Br</div>
-            </div>
-            <div class="currency-btn" onclick="selectCurrency('USD')">
-              <span class="currency-flag">🇺🇸</span>
-              <div>USD</div>
-              <div style="font-size:12px;color:#999;">$</div>
-            </div>
+        <h3>👤  Твоя информация</h3>
+        <div class="user-info">
+          <div class="user-info-label">Ник:</div>
+          <div class="user-info-value" id="profile-nick">Не указан</div>
+          <button class="secondary small" onclick="editNick()" style="margin-top:8px;">Изменить</button>
+        </div>
+        <div class="user-info">
+          <div class="user-info-label">Машина:</div>
+          <div class="user-info-value" id="profile-car">Не указана</div>
+          <button class="secondary small" onclick="editCar()" style="margin-top:8px;">Изменить</button>
+        </div>
+      </div>
+
+      <!-- Custom Consumption -->
+      <div class="profile-card">
+        <h3>⛽ Твой расход (л/100км)</h3>
+        <div class="custom-consumption">
+          <div class="consumption-input-group">
+            <label>🟢 Эконом:</label>
+            <input type="number" id="custom-eco" value="5.7" step="0.1" min="0.5" onchange="saveCustomConsumption()">
+          </div>
+          <div class="consumption-input-group">
+            <label>🟡 Средний:</label>
+            <input type="number" id="custom-normal" value="7.2" step="0.1" min="0.5" onchange="saveCustomConsumption()">
+          </div>
+          <div class="consumption-input-group">
+            <label>🔴 На все:</label>
+            <input type="number" id="custom-fast" value="10.5" step="0.1" min="0.5" onchange="saveCustomConsumption()">
           </div>
         </div>
+      </div>
 
-        <div style="margin-top:20px; padding-top:20px; border-top:1px solid #555;">
-          <h4 style="margin:0 0 14px 0;color:#ccc;">Твоя статистика:</h4>
-          <div id="profile-info"></div>
+      <!-- Currency -->
+      <div class="profile-card">
+        <h3>💱 Выбери валюту:</h3>
+        <div class="currency-selector">
+          <div class="currency-btn active" onclick="selectCurrency('RUB')">
+            <span class="currency-flag">🇷🇺</span>
+            <div>RUB</div>
+            <div style="font-size:12px;color:#999;">₽</div>
+          </div>
+          <div class="currency-btn" onclick="selectCurrency('BYN')">
+            <span class="currency-flag">🇧🇾</span>
+            <div>BYN</div>
+            <div style="font-size:12px;color:#999;">Br</div>
+          </div>
+          <div class="currency-btn" onclick="selectCurrency('USD')">
+            <span class="currency-flag">🇺🇸</span>
+            <div>USD</div>
+            <div style="font-size:12px;color:#999;">$</div>
+          </div>
         </div>
+      </div>
 
+      <!-- Stats -->
+      <div class="profile-card">
+        <h3>📊 Твоя статистика:</h3>
+        <div id="profile-info"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="profile-card">
         <div class="button-group">
           <button class="secondary" onclick="openTelegram()" style="width:100%;">💬 Пожелания и идеи</button>
           <button class="secondary" onclick="clearAllData()" style="width:100%;">🗑️ Сбросить всё</button>
@@ -522,9 +657,35 @@
   </div>
 
   <script>
-    const consumptionByType = { eco: 5.7, normal: 7.2, fast: 10.5 };
     const currencySymbols = { RUB: '₽', BYN: 'Br', USD: '$' };
+    const defaultPrices = { RUB: 55, BYN: 2.6, USD: 1.8 };
     const telegramLink = 'https://t.me/History_deleted';
+
+    let modalCallback = null;
+
+    // --- Modal functions ---
+    function openModal(title, defaultValue = '', callback) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-input').value = defaultValue;
+      document.getElementById('modal-input').focus();
+      document.getElementById('modal').classList.add('active');
+      modalCallback = callback;
+    }
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
+      modalCallback = null;
+    }
+    function confirmModal() {
+      const value = document.getElementById('modal-input').value.trim();
+      if (value && modalCallback) {
+        modalCallback(value);
+      }
+      closeModal();
+    }
+    document.getElementById('modal-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') confirmModal();
+      if (e.key === 'Escape') closeModal();
+    });
 
     // --- Currency functions ---
     function getCurrency() {
@@ -537,6 +698,7 @@
     function selectCurrency(curr) {
       setCurrency(curr);
       updateCurrencyDisplay();
+      updatePriceDefault();
       renderFavorites();
       updateProfile();
     }
@@ -546,15 +708,66 @@
       const symbol = currencySymbols[curr];
       document.getElementById('price-currency-label').innerText = symbol;
       
-      // Update button states
-      document.querySelectorAll('.currency-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
       document.querySelectorAll('.currency-btn').forEach((btn, idx) => {
+        btn.classList.remove('active');
         if ((['RUB', 'BYN', 'USD'][idx]) === curr) {
           btn.classList.add('active');
         }
       });
+    }
+
+    function updatePriceDefault() {
+      const curr = getCurrency();
+      document.getElementById('price').value = defaultPrices[curr];
+    }
+
+    // --- User Info ---
+    function getNick() {
+      return localStorage.getItem('gs-nick') || 'Не указан';
+    }
+    function setNick(nick) {
+      localStorage.setItem('gs-nick', nick);
+      updateProfile();
+    }
+    function editNick() {
+      openModal('Укажи свой ник:', getNick(), setNick);
+    }
+
+    function getCar() {
+      return localStorage.getItem('gs-car') || 'Не указана';
+    }
+    function setCar(car) {
+      localStorage.setItem('gs-car', car);
+      updateProfile();
+    }
+    function editCar() {
+      openModal('Укажи свою машину:', getCar(), setCar);
+    }
+
+    // --- Custom Consumption ---
+    function loadCustomConsumption() {
+      return {
+        eco: parseFloat(localStorage.getItem('gs-cons-eco')) || 5.7,
+        normal: parseFloat(localStorage.getItem('gs-cons-normal')) || 7.2,
+        fast: parseFloat(localStorage.getItem('gs-cons-fast')) || 10.5
+      };
+    }
+    function saveCustomConsumption() {
+      const eco = parseFloat(document.getElementById('custom-eco').value) || 5.7;
+      const normal = parseFloat(document.getElementById('custom-normal').value) || 7.2;
+      const fast = parseFloat(document.getElementById('custom-fast').value) || 10.5;
+      
+      localStorage.setItem('gs-cons-eco', eco);
+      localStorage.setItem('gs-cons-normal', normal);
+      localStorage.setItem('gs-cons-fast', fast);
+      
+      updateConsumption();
+      renderFavorites();
+    }
+
+    function getConsumptionByType() {
+      const custom = loadCustomConsumption();
+      return { eco: custom.eco, normal: custom.normal, fast: custom.fast };
     }
 
     // --- Welcome ---
@@ -578,13 +791,24 @@
       const tabIndex = ['calc', 'garage', 'profile'].indexOf(tab);
       document.querySelectorAll('.tab')[tabIndex].classList.add('active');
       document.getElementById(tab+'-section').classList.add('active');
-      if (tab === 'profile') updateProfile();
+      if (tab === 'profile') {
+        updateProfile();
+        loadCustomConsumptionUI();
+      }
+    }
+
+    function loadCustomConsumptionUI() {
+      const cons = loadCustomConsumption();
+      document.getElementById('custom-eco').value = cons.eco;
+      document.getElementById('custom-normal').value = cons.normal;
+      document.getElementById('custom-fast').value = cons.fast;
     }
 
     // --- Calculator ---
     function updateConsumption() {
       const t = document.getElementById('driveType').value;
-      document.getElementById('consumption').innerText = consumptionByType[t].toFixed(1);
+      const consumptions = getConsumptionByType();
+      document.getElementById('consumption').innerText = consumptions[t].toFixed(1);
     }
     updateConsumption();
 
@@ -592,7 +816,7 @@
       const type = document.getElementById('driveType').value;
       const distance = Number(document.getElementById('distance').value);
       const price = Number(document.getElementById('price').value);
-      const cons = consumptionByType[type];
+      const cons = getConsumptionByType()[type];
       const currency = getCurrency();
       const symbol = currencySymbols[currency];
 
@@ -617,21 +841,25 @@
       localStorage.setItem('gs-fav-trips', JSON.stringify(favs));
     }
 
-    function addFavoriteTrip() {
+    function openFavModal() {
       const calc = calculate();
-      const tripName = prompt("Название поездки (или где был):","Поездка #" + (loadFavorites().length+1));
-      if (!tripName) return;
-      let favs = loadFavorites();
-      favs.push({
-        name: tripName,
-        distance: calc.distance,
-        price: calc.price,
-        type: document.getElementById('driveType').value,
-        isRoundTrip: false,
-        currency: calc.currency
-      });
-      saveFavorites(favs);
-      renderFavorites();
+      openModal(
+        'Название поездки (или где был):',
+        'Поездка #' + (loadFavorites().length + 1),
+        (tripName) => {
+          let favs = loadFavorites();
+          favs.push({
+            name: tripName,
+            distance: calc.distance,
+            price: calc.price,
+            type: document.getElementById('driveType').value,
+            isRoundTrip: false,
+            currency: calc.currency
+          });
+          saveFavorites(favs);
+          renderFavorites();
+        }
+      );
     }
 
     function toggleRoundTrip(idx) {
@@ -651,15 +879,21 @@
     function renderFavorites() {
       const favs = loadFavorites();
       const currentCurrency = getCurrency();
+      const consumptions = getConsumptionByType();
       let html = '';
       if (favs.length === 0) {
         html = '<div class="empty-state">Нет поездок в избранном</div>';
       } else {
         favs.forEach((f, i) => {
-          const cons = consumptionByType[f.type];
+          const cons = consumptions[f.type];
           let liters = cons * f.distance / 100;
           let cost = liters * f.price;
-          if (f.isRoundTrip) { liters *= 2; cost *= 2; }
+          let displayDist = f.distance;
+          if (f.isRoundTrip) { 
+            liters *= 2; 
+            cost *= 2;
+            displayDist *= 2;
+          }
           const symbol = currencySymbols[currentCurrency];
           const typeLabel = {eco:"🟢 Эконом", normal:"🟡 Средний", fast:"🔴 На все бабки"}[f.type];
           
@@ -671,7 +905,7 @@
                 <span class="tag">${typeLabel}</span>
                 ${f.isRoundTrip ? '<span class="tag tag-roundtrip">×2 туда-обратно</span>' : ''}
                 <br>
-                ${liters.toFixed(2)} л • <span class="currency-symbol">${cost.toFixed(0)} ${symbol}</span> • ${f.distance}км
+                ${liters.toFixed(2)} л • <span class="currency-symbol">${cost.toFixed(0)} ${symbol}</span> • ${displayDist}км
               </div>
             </div>
             <div class="fav-entry-buttons">
@@ -690,10 +924,11 @@
       const favs = loadFavorites();
       const currentCurrency = getCurrency();
       const symbol = currencySymbols[currentCurrency];
+      const consumptions = getConsumptionByType();
       let cnt = favs.length;
       let liters = 0, rub = 0;
       favs.forEach(f => {
-        let l = consumptionByType[f.type] * f.distance / 100 * (f.isRoundTrip ? 2 : 1);
+        let l = consumptions[f.type] * f.distance / 100 * (f.isRoundTrip ? 2 : 1);
         let r = l * f.price;
         liters += l;
         rub += r;
@@ -712,6 +947,9 @@
           <span class="profile-stat-value">${rub.toFixed(0)} ${symbol}</span>
         </div>
       `;
+
+      document.getElementById('profile-nick').innerText = getNick();
+      document.getElementById('profile-car').innerText = getCar();
     }
 
     // --- Telegram ---
@@ -724,6 +962,8 @@
       if (confirm('Точно стереть ВСЁ? Это необратимо!')) {
         localStorage.removeItem('gs-fav-trips');
         localStorage.removeItem('gs-welcomed');
+        localStorage.removeItem('gs-nick');
+        localStorage.removeItem('gs-car');
         renderFavorites();
         updateProfile();
         showWelcome();
@@ -732,6 +972,8 @@
 
     // --- Init ---
     updateCurrencyDisplay();
+    updatePriceDefault();
+    loadCustomConsumptionUI();
   </script>
 </body>
 </html>
