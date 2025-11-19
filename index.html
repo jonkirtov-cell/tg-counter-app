@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { 
@@ -530,8 +531,8 @@
     </div>
   </div>
 
-  <!-- Modal ПЕРВОГО ВХОДА (выбор ника и валюты) -->
-  <div id="onboarding-modal" class="modal active">
+  <!-- ОНБОРДИНГ - ТОЛЬКО ОДИН РАЗ при первом входе -->
+  <div id="onboarding-modal" class="modal">
     <div class="modal-content">
       <h2 style="text-align:center;margin-bottom:20px;">🚗 Добро пожаловать в GARAGE STATS!</h2>
       
@@ -564,7 +565,6 @@
       <button onclick="completeOnboarding()" style="width:100%;margin-top:20px;">Начнём! 🚀</button>
     </div>
   </div>
-
 
   <div class="main-content">
     <!-- КАЛЬКУЛЯТОР -->
@@ -691,23 +691,50 @@
   </div>
 
   <script>
-    // ========== КОНФИГ (СТРОКИ 1-10) ==========
+    // ========== КОНФИГ (СТРОКИ 1-30) ==========
     const consumptionByType = { eco: 5.7, normal: 7.2, fast: 10.5 };
     const currencySymbols = { RUB: '₽', BYN: 'Br', USD: '$' };
     const defaultPrices = { RUB: 55, BYN: 2.6, USD: 1.8 };
     
-    // КУРСЫ ОБМЕНА - здесь при необходимости менять курсы
     const exchangeRates = {
-      RUB: 1,           // базовая валюта (1 RUB = 1 RUB)
-      BYN: 0.047,       // 1 BYN ≈ 0.047 RUB
-      USD: 0.0107       // 1 USD ≈ 0.0107 RUB (или 1 USD ≈ 93.5 RUB)
+      RUB: 1,
+      BYN: 0.047,
+      USD: 0.0107
     };
     
     const telegramLink = 'https://t.me/History_deleted';
     let modalCallback = null;
-    let lastCurrency = 'RUB';  // отслеживаем последнюю валюту
+    let lastCurrency = 'RUB';
+    let selectedOnboardingCurrency = 'RUB';
+    
+    // TELEGRAM WEB APP
+    let tg = window.Telegram.WebApp;
+    if (tg) {
+      tg.expand();
+    }
 
-    // ========== MODAL FUNCTIONS (СТРОКИ 20-45) ==========
+    // ========== TELEGRAM AUTH (СТРОКИ 32-70) ==========
+    // Функция получения данных Telegram юзера
+    function getTelegramUser() {
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        return tg.initDataUnsafe.user;
+      }
+      return null;
+    }
+
+    // Получить ник из Telegram или вернуть пусто
+    function getTelegramUsername() {
+      const user = getTelegramUser();
+      if (user && user.username) {
+        return '@' + user.username;
+      }
+      if (user && user.first_name) {
+        return user.first_name;
+      }
+      return '';
+    }
+
+    // ========== MODAL FUNCTIONS (СТРОКИ 72-100) ==========
     function openModal(title, defaultValue = '', callback) {
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-input').value = defaultValue;
@@ -731,8 +758,7 @@
       if (e.key === 'Escape') closeModal();
     });
 
-    // ========== CURRENCY FUNCTIONS (СТРОКИ 47-100) ==========
-    // Функция конвертации цены из одной валюты в другую
+    // ========== CURRENCY FUNCTIONS (СТРОКИ 102-160) ==========
     function convertPrice(amount, fromCurrency, toCurrency) {
       if (fromCurrency === toCurrency) return parseFloat(amount).toFixed(2);
       const toRUB = amount / exchangeRates[fromCurrency];
@@ -746,14 +772,11 @@
       localStorage.setItem('gs-currency', curr);
     }
 
-    // ГЛАВНАЯ ФУНКЦИЯ: когда юзер нажимает на валюту - конвертируем все поездки!
     function selectCurrency(curr) {
       const favs = loadFavorites();
       
-      // Если есть поездки и валюта изменилась - конвертируем все цены
       if (favs.length > 0 && lastCurrency !== curr) {
         favs.forEach(f => {
-          // Конвертируем цену топлива из старой валюты в новую
           f.price = parseFloat(convertPrice(f.price, lastCurrency, curr));
         });
         saveFavorites(favs);
@@ -785,7 +808,66 @@
       document.getElementById('price').value = defaultPrices[curr];
     }
 
-    // ========== USER INFO FUNCTIONS (СТРОКИ 102-140) ==========
+    // ========== ONBOARDING FUNCTIONS (СТРОКИ 162-220) ==========
+    function selectOnboardingCurrency(curr) {
+      selectedOnboardingCurrency = curr;
+      document.getElementById('onboard-rub').classList.remove('active');
+      document.getElementById('onboard-byn').classList.remove('active');
+      document.getElementById('onboard-usd').classList.remove('active');
+      document.getElementById('onboard-' + curr.toLowerCase()).classList.add('active');
+    }
+
+    function completeOnboarding() {
+      let nick = document.getElementById('onboarding-nick').value.trim();
+      
+      // Если ник пуст, берем из Telegram
+      if (!nick) {
+        nick = getTelegramUsername();
+        if (!nick) {
+          alert('Укажи свой ник или используй Telegram!');
+          return;
+        }
+      }
+      
+      // Сохраняем
+      setNick(nick);
+      setCurrency(selectedOnboardingCurrency);
+      lastCurrency = selectedOnboardingCurrency;
+      
+      // ГЛАВНОЕ: устанавливаем флаг что онбординг прошел!
+      localStorage.setItem('gs-onboarded', '1');
+      
+      // Закрываем модал
+      document.getElementById('onboarding-modal').classList.remove('active');
+      document.body.style.overflow = "";
+      
+      // Обновляем отображение
+      updateCurrencyDisplay();
+      updatePriceDefault();
+      updateProfile();
+    }
+
+    function showOnboarding() {
+      // ПРОВЕРЯЕМ: если онбординг уже прошел - НЕ показываем!
+      if (!localStorage.getItem('gs-onboarded')) {
+        // Если есть Telegram юзер - подставляем ник
+        const tgNick = getTelegramUsername();
+        if (tgNick) {
+          document.getElementById('onboarding-nick').placeholder = tgNick;
+          document.getElementById('onboarding-nick').value = tgNick;
+        }
+        
+        document.getElementById('onboarding-modal').classList.add('active');
+        document.body.style.overflow = "hidden";
+      } else {
+        // Онбординг уже прошел - просто загружаем норм
+        updateCurrencyDisplay();
+        updatePriceDefault();
+        loadCustomConsumptionUI();
+      }
+    }
+
+    // ========== USER INFO FUNCTIONS (СТРОКИ 222-260) ==========
     function getNick() {
       return localStorage.getItem('gs-nick') || 'Не указан';
     }
@@ -808,7 +890,7 @@
       openModal('Укажи свою машину:', getCar(), setCar);
     }
 
-    // ========== CUSTOM CONSUMPTION FUNCTIONS (СТРОКИ 142-180) ==========
+    // ========== CUSTOM CONSUMPTION FUNCTIONS (СТРОКИ 262-300) ==========
     function loadCustomConsumption() {
       return {
         eco: parseFloat(localStorage.getItem('gs-cons-eco')) || 5.7,
@@ -834,61 +916,14 @@
       return { eco: custom.eco, normal: custom.normal, fast: custom.fast };
     }
 
-    // ========== WELCOME & ONBOARDING FUNCTIONS (СТРОКИ 182-240) ==========
-    let selectedOnboardingCurrency = 'RUB';
-
-    function selectOnboardingCurrency(curr) {
-      selectedOnboardingCurrency = curr;
-      // Обновляем визуально выбранную кнопку
-      document.getElementById('onboard-rub').classList.remove('active');
-      document.getElementById('onboard-byn').classList.remove('active');
-      document.getElementById('onboard-usd').classList.remove('active');
-      document.getElementById('onboard-' + curr.toLowerCase()).classList.add('active');
+    function loadCustomConsumptionUI() {
+      const cons = loadCustomConsumption();
+      document.getElementById('custom-eco').value = cons.eco;
+      document.getElementById('custom-normal').value = cons.normal;
+      document.getElementById('custom-fast').value = cons.fast;
     }
 
-    function completeOnboarding() {
-      const nick = document.getElementById('onboarding-nick').value.trim();
-      if (!nick) {
-        alert('Укажи свой ник!');
-        return;
-      }
-      
-      // Сохраняем ник и валюту
-      setNick(nick);
-      setCurrency(selectedOnboardingCurrency);
-      lastCurrency = selectedOnboardingCurrency;
-      
-      // Закрываем модальное окно
-      document.getElementById('onboarding-modal').classList.remove('active');
-      document.body.style.overflow = "";
-      
-      // Обновляем отображение
-      updateCurrencyDisplay();
-      updatePriceDefault();
-      
-      // Отмечаем что приложение уже использовалось
-      localStorage.setItem('gs-welcomed', '1');
-    }
-
-    function showOnboarding() {
-      if (!localStorage.getItem('gs-welcomed')) {
-        document.getElementById('onboarding-modal').classList.add('active');
-        document.body.style.overflow = "hidden";
-      }
-    }
-
-    function showWelcome() {
-      if (!localStorage.getItem('gs-welcomed')) {
-        document.getElementById('welcome').classList.remove('hidden');
-        document.body.style.overflow = "hidden";
-      }
-    }
-
-    // При загрузке страницы показываем онбординг если первый раз
-    showOnboarding();
-
-
-    // ========== TAB FUNCTIONS (СТРОКИ 202-230) ==========
+    // ========== TAB FUNCTIONS (СТРОКИ 302-330) ==========
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
@@ -901,14 +936,7 @@
       }
     }
 
-    function loadCustomConsumptionUI() {
-      const cons = loadCustomConsumption();
-      document.getElementById('custom-eco').value = cons.eco;
-      document.getElementById('custom-normal').value = cons.normal;
-      document.getElementById('custom-fast').value = cons.fast;
-    }
-
-    // ========== CALCULATOR FUNCTIONS (СТРОКИ 232-260) ==========
+    // ========== CALCULATOR FUNCTIONS (СТРОКИ 332-360) ==========
     function updateConsumption() {
       const t = document.getElementById('driveType').value;
       const consumptions = getConsumptionByType();
@@ -937,7 +965,7 @@
       return {cons, distance, price, liters, cost, currency};
     }
 
-    // ========== FAVORITES FUNCTIONS (СТРОКИ 262-370) ==========
+    // ========== FAVORITES FUNCTIONS (СТРОКИ 362-480) ==========
     function loadFavorites() {
       return JSON.parse(localStorage.getItem('gs-fav-trips') || '[]');
     }
@@ -1023,7 +1051,7 @@
     }
     renderFavorites();
 
-    // ========== PROFILE FUNCTIONS (СТРОКИ 372-410) ==========
+    // ========== PROFILE FUNCTIONS (СТРОКИ 482-520) ==========
     function updateProfile() {
       const favs = loadFavorites();
       const currentCurrency = getCurrency();
@@ -1056,7 +1084,7 @@
       document.getElementById('profile-car').innerText = getCar();
     }
 
-    // ========== TELEGRAM & CLEAR (СТРОКИ 412-430) ==========
+    // ========== TELEGRAM & CLEAR (СТРОКИ 522-540) ==========
     function openTelegram() {
       window.open(telegramLink, '_blank');
     }
@@ -1064,21 +1092,19 @@
     function clearAllData() {
       if (confirm('Точно стереть ВСЁ? Это необратимо!')) {
         localStorage.removeItem('gs-fav-trips');
-        localStorage.removeItem('gs-welcomed');
+        localStorage.removeItem('gs-onboarded');
         localStorage.removeItem('gs-nick');
         localStorage.removeItem('gs-car');
+        localStorage.removeItem('gs-currency');
         renderFavorites();
         updateProfile();
-        showWelcome();
+        // Перезагружаем страницу чтобы показался онбординг заново
+        location.reload();
       }
     }
 
-    // ========== INIT (СТРОКИ 432-438) ==========
-    updateCurrencyDisplay();
-    updatePriceDefault();
-    loadCustomConsumptionUI();
-    // Онбординг покажется в showOnboarding() если это первый раз
+    // ========== INIT (СТРОКИ 542-545) ==========
+    showOnboarding();
   </script>
 </body>
 </html>
-
