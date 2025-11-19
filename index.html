@@ -1,64 +1,263 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Счётчик</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-        }
-        h2 { font-size: 48px; margin: 20px; }
-        button {
-            font-size: 24px;
-            padding: 15px 30px;
-            margin: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>GARAGE STATS</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: 'Orbitron', Arial, sans-serif; background: #25292e; color: #eee; }
+    .logo { text-align: center; margin-top: 36px; }
+    .logo-svg { width: 90px; height: 90px; }
+    .app-title { font-size: 2em; letter-spacing: 3px; margin: 4px 0 10px 0; }
+    .welcome { background: #32383e; border-radius: 16px; margin: 25px 20px; padding: 24px 18px; text-align: center; }
+    .hidden { display: none !important; }
+    .tabs { background: #2e343b; display: flex; position: fixed; left: 0; right: 0; bottom: 0; height: 58px; border-top: 1px solid #444; }
+    .tab { flex: 1; text-align: center; padding-top: 9px; font-size: 18px; color: #bbb; cursor: pointer; }
+    .tab.active { color: #67ff84; font-weight: bold; }
+    .main-content { padding-bottom: 70px; min-height: 65vh; }
+    .section { display: none; }
+    .section.active { display: block; }
+    /* Кнопки и поля */
+    .gas-calc-box { background: #32383e; border-radius: 13px; margin: 20px 10px 16px 10px; padding: 16px 8px; }
+    .input-group { margin: 15px 0; }
+    label { font-size: 16px; }
+    input[type="number"] { width: 60px; border-radius: 6px; border: none; padding: 7px; font-size: 17px; margin-left: 8px; }
+    select { font-size: 17px; padding: 5px 7px; border-radius: 5px; }
+    button { background: #67ff84; color: #222; border: none; border-radius: 8px; padding: 10px 20px; font-size: 17px; cursor: pointer; font-family: inherit;}
+    button:active { background: #38ff62; }
+    .fav-list { margin-top: 14px; }
+    .fav-entry { background: #262c32; padding: 10px 12px; border-radius: 7px; margin-bottom: 9px; display: flex; justify-content: space-between; align-items: center }
+    .tag-roundtrip { background: #67ff84; color: #111; border-radius: 9px; font-size: 0.9em; padding: 2px 8px; margin-left: 8px; }
+    @media (max-width:500px) {
+      .gas-calc-box { margin:14px 2vw 10px 2vw; }
+      .tab { font-size: 15.5px;}
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Счёт: <span id="count">0</span></h2>
-        <button onclick="onDec()">-</button>
-        <button onclick="onInc()">+</button>
+  <div class="logo">
+    <!-- SVG Логотип -->
+    <svg class="logo-svg" viewBox="0 0 90 90" fill="none"><circle cx="45" cy="45" r="45" fill="#67ff84"/><rect x="18" y="61" width="53" height="11" rx="5.5" fill="#25292e"/><rect x="26" y="31" width="37" height="33" rx="8" fill="#222"/><rect x="28.5" y="33.5" width="32" height="28" rx="6.5" fill="#25292e"/><rect x="37" y="41" width="6" height="12" rx="2" fill="#67ff84"/><rect x="47" y="41" width="6" height="12" rx="2" fill="#67ff84"/><circle cx="55" cy="61" r="3" fill="#67ff84"/><circle cx="35" cy="61" r="3" fill="#67ff84"/></svg>
+    <div class="app-title">GARAGE STATS</div>
+  </div>
+
+  <div id="welcome" class="welcome hidden">
+    <h2>Добро пожаловать!</h2>
+    <p>Это твой новый помощник для контроля расходов на авто.<br>
+    Веди и анализируй все свои траты и поездки!<br>
+    Вода камень точет 🚗</p>
+    <button onclick="closeWelcome()">Погнали!</button>
+  </div>
+
+  <div class="main-content">
+    <!-- ВКЛАДКИ -->
+    <div id="calc-section" class="section active">
+      <!-- Калькулятор расхода -->
+      <div class="gas-calc-box">
+        <form id="calc-form" onsubmit="return false;">
+          <div class="input-group">
+            <label>Тип езды:
+              <select id="driveType">
+                <option value="eco">Экономный</option>
+                <option value="normal" selected>Средний</option>
+                <option value="fast">На все бабки</option>
+              </select>
+            </label>
+          </div>
+          <div class="input-group">
+            <label>Расход (л/100км):
+              <span id="consumption">7.0</span>
+            </label>
+          </div>
+          <div class="input-group">
+            <label>Дистанция (км): <input type="number" id="distance" value="100" min="1" max="10000"/></label>
+          </div>
+          <div class="input-group">
+            <label>Цена бензина (₽/л): <input type="number" id="price" value="55" min="1" max="500"/></label>
+          </div>
+          <button type="button" onclick="calculate()">Рассчитать</button>
+        </form>
+        <div style="margin-top:10px;font-size:1.03em;" id="calc-result"></div>
+        <button type="button" style="margin-top:8px;" onclick="addFavoriteTrip()">☆ В избранное</button>
+      </div>
+      <!-- Избранные поездки -->
+      <div>
+        <h3>Избранные поездки</h3>
+        <div id="fav-list" class="fav-list"></div>
+      </div>
     </div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        
-        // Применяем тему телеги
-        document.body.style.backgroundColor = tg.themeParams.bg_color || '#fff';
-        document.body.style.color = tg.themeParams.text_color || '#000';
-        
-        let count = 0;
-        const counter = document.getElementById("count");
+    <div id="garage-section" class="section">
+      <div class="gas-calc-box">
+        <h3>Гараж 🚙</h3>
+        <div>Твоя коллекция железных коней: <br><br>
+        <span style="color:#aaa">(функционал для добавления авто скоро появится!)</span>
+        </div>
+      </div>
+    </div>
 
-        function onDec() {
-            count--;
-            counter.textContent = count;
-            tg.HapticFeedback.impactOccurred('light');
-        }
+    <div id="profile-section" class="section">
+      <div class="gas-calc-box">
+        <h3>Профиль</h3>
+        <div id="profile-info"></div>
+        <button style="margin-top:8px;" onclick="clearAllData()">Сбросить всё</button>
+      </div>
+    </div>
+  </div>
 
-        function onInc() {
-            count++;
-            counter.textContent = count;
-            tg.HapticFeedback.impactOccurred('light');
-        }
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('calc')">Калькулятор</div>
+    <div class="tab" onclick="switchTab('garage')">Гараж</div>
+    <div class="tab" onclick="switchTab('profile')">Профиль</div>
+  </div>
 
-        tg.ready();
-    </script>
+  <script>
+    const consumptionByType = { eco: 5.7, normal: 7.2, fast: 10.5 };
+
+    // --- Welcome popup ---
+    function showWelcome() {
+      if (!localStorage.getItem('gs-welcomed')) {
+        document.getElementById('welcome').classList.remove('hidden');
+        document.body.style.overflow = "hidden";
+      }
+    }
+    function closeWelcome() {
+      document.getElementById('welcome').classList.add('hidden');
+      localStorage.setItem('gs-welcomed', '1');
+      document.body.style.overflow = "";
+    }
+    showWelcome();
+
+    // --- Tabs ---
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((el, i) => {
+        el.classList.remove('active');
+      });
+      document.querySelector('.tab.' + tab) ? document.querySelector('.tab.' + tab).classList.add('active') : document.querySelectorAll('.tab')[['calc', 'garage', 'profile'].indexOf(tab)].classList.add('active');
+      document.querySelectorAll('.section').forEach((el) => el.classList.remove('active'));
+      document.getElementById(tab+'-section').classList.add('active');
+      if (tab==='profile') updateProfile();
+    }
+
+    // For switching by tab name
+    document.querySelectorAll('.tab')[0].classList.add('calc');
+    document.querySelectorAll('.tab')[1].classList.add('garage');
+    document.querySelectorAll('.tab')[2].classList.add('profile');
+
+    // --- Calculator logic ---
+    function updateConsumption() {
+      const t = document.getElementById('driveType').value;
+      document.getElementById('consumption').innerText = consumptionByType[t].toFixed(1);
+    }
+    document.getElementById('driveType').addEventListener('change', updateConsumption);
+    updateConsumption();
+
+    function calculate() {
+      const type = document.getElementById('driveType').value;
+      const distance = Number(document.getElementById('distance').value);
+      const price = Number(document.getElementById('price').value);
+      const cons = consumptionByType[type];
+
+      const liters = cons * distance / 100;
+      const cost = liters * price;
+      document.getElementById('calc-result').innerHTML =
+        `Потратишь <b>${liters.toFixed(2)} литра</b>, что = <b>${cost.toFixed(0)} ₽</b>`;
+
+      return {cons, distance, price, liters, cost};
+    }
+
+    // --- Favorites logic ---
+    function loadFavorites() {
+      return JSON.parse(localStorage.getItem('gs-fav-trips') || '[]');
+    }
+    function saveFavorites(favs) {
+      localStorage.setItem('gs-fav-trips', JSON.stringify(favs));
+    }
+
+    function addFavoriteTrip() {
+      const calc = calculate();
+      const tripName = prompt("Название поездки (или где был):","Поездка #" + (loadFavorites().length+1));
+      if (!tripName) return;
+      let favs = loadFavorites();
+      favs.push({
+        name: tripName,
+        distance: calc.distance,
+        price: calc.price,
+        type: document.getElementById('driveType').value,
+        isRoundTrip: false
+      });
+      saveFavorites(favs);
+      renderFavorites();
+    }
+    function toggleRoundTrip(idx) {
+      let favs = loadFavorites();
+      favs[idx].isRoundTrip = !favs[idx].isRoundTrip;
+      saveFavorites(favs);
+      renderFavorites();
+    }
+    function renderFavorites() {
+      const favs = loadFavorites();
+      let html = '';
+      if (favs.length === 0) {
+        html = '<div style="color:#888;margin-top:10px;">Нет поездок в избранном</div>';
+      } else {
+        favs.forEach((f,i) => {
+          const cons = consumptionByType[f.type];
+          let liters = cons * f.distance / 100;
+          let cost = liters * f.price;
+          if (f.isRoundTrip) { liters *= 2; cost *= 2; }
+          html += `
+          <div class="fav-entry">
+            <div>
+              <b>${f.name}</b>
+              <span class="tag-type" style="margin-left:12px;">${({
+                eco:"Эконом",normal:"Средний",fast:"На все бабки"
+              })[f.type]}</span>
+              ${f.isRoundTrip?'<span class="tag-roundtrip">×2 туда-обратно</span>':''}<br>
+              <span style="font-size:13.5px;">
+                ${liters.toFixed(2)} л, ${cost.toFixed(0)} ₽, ${f.distance}км, ${f.price}₽/л
+              </span>
+            </div>
+            <div>
+              <button onclick="toggleRoundTrip(${i})">${f.isRoundTrip?'Обычная':'Туда-обратно'}</button>
+            </div>
+          </div>`;
+        });
+      }
+      document.getElementById('fav-list').innerHTML = html;
+    }
+    renderFavorites();
+
+    // --- Профиль: показать базовую инфу (сколько поездок, потрачено литров/руб) ---
+    function updateProfile() {
+      const favs = loadFavorites();
+      let cnt = favs.length;
+      let liters = 0, rub = 0;
+      favs.forEach(f=>{
+        let l = consumptionByType[f.type]*f.distance/100 * (f.isRoundTrip?2:1);
+        let r = l*f.price;
+        liters += l; rub += r;
+      });
+      document.getElementById('profile-info').innerHTML = `
+        Всего поездок: <b>${cnt}</b><br>
+        Потрачено топлива: <b>${liters.toFixed(1)} л</b><br>
+        Потрачено денег: <b>${rub.toFixed(0)} ₽</b><br>
+        Любые пожелания и идеи — отправляй админу, всё реализуем!<br>
+      `;
+    }
+
+    // --- Сброс ---
+    function clearAllData() {
+      if (confirm('Точно стереть ВСЁ? Действие необратимо!')) {
+        localStorage.removeItem('gs-fav-trips');
+        localStorage.removeItem('gs-welcomed');
+        renderFavorites();
+        updateProfile();
+        showWelcome();
+      }
+    }
+  </script>
 </body>
 </html>
