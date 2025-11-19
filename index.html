@@ -24,14 +24,22 @@
     .input-group { margin: 15px 0; }
     label { font-size: 16px; }
     input[type="number"] { width: 60px; border-radius: 6px; border: none; padding: 7px; font-size: 17px; margin-left: 8px; }
-    select { font-size: 17px; padding: 5px 7px; border-radius: 5px; }
-    button { background: #67ff84; color: #222; border: none; border-radius: 8px; padding: 10px 20px; font-size: 17px; cursor: pointer; font-family: inherit;}
+    select { font-size: 17px; padding: 5px 7px; border-radius: 5px; background: #eee; color: #222; }
+    button { background: #67ff84; color: #222; border: none; border-radius: 8px; padding: 10px 20px; font-size: 17px; cursor: pointer; font-family: inherit; font-weight: bold; }
     button:active { background: #38ff62; }
+    button.secondary { background: #4a5261; color: #eee; }
+    button.secondary:active { background: #556278; }
     .fav-list { margin-top: 14px; }
     .fav-entry { background: #262c32; padding: 10px 12px; border-radius: 7px; margin-bottom: 9px; display: flex; justify-content: space-between; align-items: center }
     .tag-roundtrip { background: #67ff84; color: #111; border-radius: 9px; font-size: 0.9em; padding: 2px 8px; margin-left: 8px; }
+    .currency-symbol { font-weight: bold; color: #67ff84; }
+    .profile-section { background: #32383e; border-radius: 13px; margin: 20px 10px 16px 10px; padding: 16px 8px; }
+    .profile-stat { margin: 12px 0; font-size: 17px; }
+    .profile-stat-value { color: #67ff84; font-weight: bold; }
+    .button-group { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
     @media (max-width:500px) {
       .gas-calc-box { margin:14px 2vw 10px 2vw; }
+      .profile-section { margin:14px 2vw 10px 2vw; }
       .tab { font-size: 15.5px;}
     }
   </style>
@@ -59,7 +67,7 @@
         <form id="calc-form" onsubmit="return false;">
           <div class="input-group">
             <label>Тип езды:
-              <select id="driveType">
+              <select id="driveType" onchange="updateConsumption()">
                 <option value="eco">Экономный</option>
                 <option value="normal" selected>Средний</option>
                 <option value="fast">На все бабки</option>
@@ -75,7 +83,7 @@
             <label>Дистанция (км): <input type="number" id="distance" value="100" min="1" max="10000"/></label>
           </div>
           <div class="input-group">
-            <label>Цена бензина (₽/л): <input type="number" id="price" value="55" min="1" max="500"/></label>
+            <label>Цена топлива (<span id="price-currency-label">₽</span>/л): <input type="number" id="price" value="55" min="0.1" max="500" step="0.1"/></label>
           </div>
           <button type="button" onclick="calculate()">Рассчитать</button>
         </form>
@@ -99,10 +107,28 @@
     </div>
 
     <div id="profile-section" class="section">
-      <div class="gas-calc-box">
+      <div class="profile-section">
         <h3>Профиль</h3>
+        
+        <!-- Выбор валюты -->
+        <div class="input-group">
+          <label style="display:block;">Выбери валюту:
+            <select id="currencySelect" onchange="changeCurrency()" style="margin-top:8px;">
+              <option value="RUB">🇷🇺 RUB (₽)</option>
+              <option value="BYN">🇧🇾 BYN (Br)</option>
+              <option value="USD">🇺🇸 USD ($)</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Статистика -->
         <div id="profile-info"></div>
-        <button style="margin-top:8px;" onclick="clearAllData()">Сбросить всё</button>
+
+        <!-- Кнопки -->
+        <div class="button-group">
+          <button class="secondary" onclick="openTelegram()">💬 Написать пожелания и идеи</button>
+          <button class="secondary" onclick="clearAllData()">🗑️ Сбросить всё</button>
+        </div>
       </div>
     </div>
   </div>
@@ -115,6 +141,16 @@
 
   <script>
     const consumptionByType = { eco: 5.7, normal: 7.2, fast: 10.5 };
+    const currencySymbols = { RUB: '₽', BYN: 'Br', USD: '$' };
+    const telegramLink = 'https://t.me/History_deleted';
+
+    // --- Get current currency ---
+    function getCurrency() {
+      return localStorage.getItem('gs-currency') || 'RUB';
+    }
+    function setCurrency(curr) {
+      localStorage.setItem('gs-currency', curr);
+    }
 
     // --- Welcome popup ---
     function showWelcome() {
@@ -132,26 +168,35 @@
 
     // --- Tabs ---
     function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach((el, i) => {
-        el.classList.remove('active');
-      });
-      document.querySelector('.tab.' + tab) ? document.querySelector('.tab.' + tab).classList.add('active') : document.querySelectorAll('.tab')[['calc', 'garage', 'profile'].indexOf(tab)].classList.add('active');
+      document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
       document.querySelectorAll('.section').forEach((el) => el.classList.remove('active'));
+      const tabIndex = ['calc', 'garage', 'profile'].indexOf(tab);
+      document.querySelectorAll('.tab')[tabIndex].classList.add('active');
       document.getElementById(tab+'-section').classList.add('active');
       if (tab==='profile') updateProfile();
     }
 
-    // For switching by tab name
-    document.querySelectorAll('.tab')[0].classList.add('calc');
-    document.querySelectorAll('.tab')[1].classList.add('garage');
-    document.querySelectorAll('.tab')[2].classList.add('profile');
+    // --- Currency change ---
+    function changeCurrency() {
+      const newCurr = document.getElementById('currencySelect').value;
+      setCurrency(newCurr);
+      updateCurrencyDisplay();
+      renderFavorites();
+      updateProfile();
+    }
+
+    function updateCurrencyDisplay() {
+      const curr = getCurrency();
+      const symbol = currencySymbols[curr];
+      document.getElementById('price-currency-label').innerText = symbol;
+      document.getElementById('currencySelect').value = curr;
+    }
 
     // --- Calculator logic ---
     function updateConsumption() {
       const t = document.getElementById('driveType').value;
       document.getElementById('consumption').innerText = consumptionByType[t].toFixed(1);
     }
-    document.getElementById('driveType').addEventListener('change', updateConsumption);
     updateConsumption();
 
     function calculate() {
@@ -159,13 +204,15 @@
       const distance = Number(document.getElementById('distance').value);
       const price = Number(document.getElementById('price').value);
       const cons = consumptionByType[type];
+      const currency = getCurrency();
+      const symbol = currencySymbols[currency];
 
       const liters = cons * distance / 100;
       const cost = liters * price;
       document.getElementById('calc-result').innerHTML =
-        `Потратишь <b>${liters.toFixed(2)} литра</b>, что = <b>${cost.toFixed(0)} ₽</b>`;
+        `Потратишь <b>${liters.toFixed(2)} литра</b>, что = <b class="currency-symbol">${cost.toFixed(0)} ${symbol}</b>`;
 
-      return {cons, distance, price, liters, cost};
+      return {cons, distance, price, liters, cost, currency};
     }
 
     // --- Favorites logic ---
@@ -186,19 +233,30 @@
         distance: calc.distance,
         price: calc.price,
         type: document.getElementById('driveType').value,
-        isRoundTrip: false
+        isRoundTrip: false,
+        currency: calc.currency
       });
       saveFavorites(favs);
       renderFavorites();
     }
+
     function toggleRoundTrip(idx) {
       let favs = loadFavorites();
       favs[idx].isRoundTrip = !favs[idx].isRoundTrip;
       saveFavorites(favs);
       renderFavorites();
     }
+
+    function deleteFavorite(idx) {
+      let favs = loadFavorites();
+      favs.splice(idx, 1);
+      saveFavorites(favs);
+      renderFavorites();
+    }
+
     function renderFavorites() {
       const favs = loadFavorites();
+      const currentCurrency = getCurrency();
       let html = '';
       if (favs.length === 0) {
         html = '<div style="color:#888;margin-top:10px;">Нет поездок в избранном</div>';
@@ -208,20 +266,22 @@
           let liters = cons * f.distance / 100;
           let cost = liters * f.price;
           if (f.isRoundTrip) { liters *= 2; cost *= 2; }
+          const symbol = currencySymbols[currentCurrency];
           html += `
           <div class="fav-entry">
             <div>
               <b>${f.name}</b>
-              <span class="tag-type" style="margin-left:12px;">${({
+              <span style="background:#555;color:#eee;border-radius:6px;font-size:0.85em;padding:2px 6px;margin-left:8px;">${({
                 eco:"Эконом",normal:"Средний",fast:"На все бабки"
               })[f.type]}</span>
               ${f.isRoundTrip?'<span class="tag-roundtrip">×2 туда-обратно</span>':''}<br>
               <span style="font-size:13.5px;">
-                ${liters.toFixed(2)} л, ${cost.toFixed(0)} ₽, ${f.distance}км, ${f.price}₽/л
+                ${liters.toFixed(2)} л, <span class="currency-symbol">${cost.toFixed(0)} ${symbol}</span>, ${f.distance}км
               </span>
             </div>
-            <div>
-              <button onclick="toggleRoundTrip(${i})">${f.isRoundTrip?'Обычная':'Туда-обратно'}</button>
+            <div style="display:flex;gap:6px;">
+              <button style="padding:5px 8px;font-size:13px;" onclick="toggleRoundTrip(${i})">${f.isRoundTrip?'Обычная':'×2'}</button>
+              <button style="padding:5px 8px;font-size:13px;background:#ff6b6b;" onclick="deleteFavorite(${i})">✕</button>
             </div>
           </div>`;
         });
@@ -230,9 +290,11 @@
     }
     renderFavorites();
 
-    // --- Профиль: показать базовую инфу (сколько поездок, потрачено литров/руб) ---
+    // --- Профиль ---
     function updateProfile() {
       const favs = loadFavorites();
+      const currentCurrency = getCurrency();
+      const symbol = currencySymbols[currentCurrency];
       let cnt = favs.length;
       let liters = 0, rub = 0;
       favs.forEach(f=>{
@@ -241,11 +303,15 @@
         liters += l; rub += r;
       });
       document.getElementById('profile-info').innerHTML = `
-        Всего поездок: <b>${cnt}</b><br>
-        Потрачено топлива: <b>${liters.toFixed(1)} л</b><br>
-        Потрачено денег: <b>${rub.toFixed(0)} ₽</b><br>
-        Любые пожелания и идеи — отправляй админу, всё реализуем!<br>
+        <div class="profile-stat">Всего поездок: <span class="profile-stat-value">${cnt}</span></div>
+        <div class="profile-stat">Потрачено топлива: <span class="profile-stat-value">${liters.toFixed(1)} л</span></div>
+        <div class="profile-stat">Потрачено денег: <span class="profile-stat-value">${rub.toFixed(0)} ${symbol}</span></div>
       `;
+    }
+
+    // --- Open Telegram ---
+    function openTelegram() {
+      window.open(telegramLink, '_blank');
     }
 
     // --- Сброс ---
@@ -258,6 +324,9 @@
         showWelcome();
       }
     }
+
+    // --- Init on load ---
+    updateCurrencyDisplay();
   </script>
 </body>
 </html>
