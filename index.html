@@ -504,14 +504,11 @@
   </style>
 </head>
 <body>
-      <div class="logo">
-    <!-- Логотип гаража -->
+  <div class="logo">
     <img src="logo.png" alt="GARAGE STATS" class="logo-img">
-
     <div class="app-title">GARAGE STATS</div>
     <div class="app-subtitle">⚡ FUEL TRACKER ⚡</div>
   </div>
-
 
   <div id="welcome" class="welcome hidden">
     <h2>🚗 Добро пожаловать!</h2>
@@ -658,14 +655,23 @@
   </div>
 
   <script>
+    // ========== КОНФИГ (СТРОКИ 1-10) ==========
     const consumptionByType = { eco: 5.7, normal: 7.2, fast: 10.5 };
     const currencySymbols = { RUB: '₽', BYN: 'Br', USD: '$' };
     const defaultPrices = { RUB: 55, BYN: 2.6, USD: 1.8 };
+    
+    // КУРСЫ ОБМЕНА - здесь при необходимости менять курсы
+    const exchangeRates = {
+      RUB: 1,           // базовая валюта (1 RUB = 1 RUB)
+      BYN: 0.047,       // 1 BYN ≈ 0.047 RUB
+      USD: 0.0107       // 1 USD ≈ 0.0107 RUB (или 1 USD ≈ 93.5 RUB)
+    };
+    
     const telegramLink = 'https://t.me/History_deleted';
-
     let modalCallback = null;
+    let lastCurrency = 'RUB';  // отслеживаем последнюю валюту
 
-    // --- Modal functions ---
+    // ========== MODAL FUNCTIONS (СТРОКИ 20-45) ==========
     function openModal(title, defaultValue = '', callback) {
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-input').value = defaultValue;
@@ -689,7 +695,14 @@
       if (e.key === 'Escape') closeModal();
     });
 
-    // --- Currency functions ---
+    // ========== CURRENCY FUNCTIONS (СТРОКИ 47-100) ==========
+    // Функция конвертации цены из одной валюты в другую
+    function convertPrice(amount, fromCurrency, toCurrency) {
+      if (fromCurrency === toCurrency) return parseFloat(amount).toFixed(2);
+      const toRUB = amount / exchangeRates[fromCurrency];
+      return (toRUB * exchangeRates[toCurrency]).toFixed(2);
+    }
+
     function getCurrency() {
       return localStorage.getItem('gs-currency') || 'RUB';
     }
@@ -697,7 +710,20 @@
       localStorage.setItem('gs-currency', curr);
     }
 
+    // ГЛАВНАЯ ФУНКЦИЯ: когда юзер нажимает на валюту - конвертируем все поездки!
     function selectCurrency(curr) {
+      const favs = loadFavorites();
+      
+      // Если есть поездки и валюта изменилась - конвертируем все цены
+      if (favs.length > 0 && lastCurrency !== curr) {
+        favs.forEach(f => {
+          // Конвертируем цену топлива из старой валюты в новую
+          f.price = parseFloat(convertPrice(f.price, lastCurrency, curr));
+        });
+        saveFavorites(favs);
+      }
+      
+      lastCurrency = curr;
       setCurrency(curr);
       updateCurrencyDisplay();
       updatePriceDefault();
@@ -723,7 +749,7 @@
       document.getElementById('price').value = defaultPrices[curr];
     }
 
-    // --- User Info ---
+    // ========== USER INFO FUNCTIONS (СТРОКИ 102-140) ==========
     function getNick() {
       return localStorage.getItem('gs-nick') || 'Не указан';
     }
@@ -746,7 +772,7 @@
       openModal('Укажи свою машину:', getCar(), setCar);
     }
 
-    // --- Custom Consumption ---
+    // ========== CUSTOM CONSUMPTION FUNCTIONS (СТРОКИ 142-180) ==========
     function loadCustomConsumption() {
       return {
         eco: parseFloat(localStorage.getItem('gs-cons-eco')) || 5.7,
@@ -772,7 +798,7 @@
       return { eco: custom.eco, normal: custom.normal, fast: custom.fast };
     }
 
-    // --- Welcome ---
+    // ========== WELCOME FUNCTIONS (СТРОКИ 182-200) ==========
     function showWelcome() {
       if (!localStorage.getItem('gs-welcomed')) {
         document.getElementById('welcome').classList.remove('hidden');
@@ -786,7 +812,7 @@
     }
     showWelcome();
 
-    // --- Tabs ---
+    // ========== TAB FUNCTIONS (СТРОКИ 202-230) ==========
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
@@ -806,7 +832,7 @@
       document.getElementById('custom-fast').value = cons.fast;
     }
 
-    // --- Calculator ---
+    // ========== CALCULATOR FUNCTIONS (СТРОКИ 232-260) ==========
     function updateConsumption() {
       const t = document.getElementById('driveType').value;
       const consumptions = getConsumptionByType();
@@ -835,7 +861,7 @@
       return {cons, distance, price, liters, cost, currency};
     }
 
-    // --- Favorites ---
+    // ========== FAVORITES FUNCTIONS (СТРОКИ 262-370) ==========
     function loadFavorites() {
       return JSON.parse(localStorage.getItem('gs-fav-trips') || '[]');
     }
@@ -921,7 +947,7 @@
     }
     renderFavorites();
 
-    // --- Profile ---
+    // ========== PROFILE FUNCTIONS (СТРОКИ 372-410) ==========
     function updateProfile() {
       const favs = loadFavorites();
       const currentCurrency = getCurrency();
@@ -954,12 +980,11 @@
       document.getElementById('profile-car').innerText = getCar();
     }
 
-    // --- Telegram ---
+    // ========== TELEGRAM & CLEAR (СТРОКИ 412-430) ==========
     function openTelegram() {
       window.open(telegramLink, '_blank');
     }
 
-    // --- Clear ---
     function clearAllData() {
       if (confirm('Точно стереть ВСЁ? Это необратимо!')) {
         localStorage.removeItem('gs-fav-trips');
@@ -972,12 +997,10 @@
       }
     }
 
-    // --- Init ---
+    // ========== INIT (СТРОКИ 432-436) ==========
     updateCurrencyDisplay();
     updatePriceDefault();
     loadCustomConsumptionUI();
   </script>
 </body>
 </html>
-
-
