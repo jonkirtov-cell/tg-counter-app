@@ -7,77 +7,447 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
   <style>
-    body { margin: 0; font-family: 'Orbitron', Arial, sans-serif; background: #25292e; color: #eee; }
-    .logo { text-align: center; margin-top: 36px; }
-    .logo-svg { width: 90px; height: 90px; }
-    .app-title { font-size: 2em; letter-spacing: 3px; margin: 4px 0 10px 0; }
-    .welcome { background: #32383e; border-radius: 16px; margin: 25px 20px; padding: 24px 18px; text-align: center; }
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      font-family: 'Orbitron', Arial, sans-serif; 
+      background: linear-gradient(135deg, #1a1f24 0%, #25292e 100%);
+      color: #eee; 
+      overflow-x: hidden;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+
+    .logo { 
+      text-align: center; 
+      margin-top: 24px; 
+      animation: fadeIn 0.6s ease-out;
+    }
+    .logo-svg { 
+      width: 80px; 
+      height: 80px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .app-title { 
+      font-size: 1.8em; 
+      letter-spacing: 4px; 
+      margin: 8px 0 6px 0; 
+      background: linear-gradient(135deg, #67ff84, #4edd77);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .app-subtitle {
+      font-size: 0.75em;
+      color: #999;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    .welcome { 
+      background: linear-gradient(135deg, #32383e 0%, #2e343a 100%);
+      border-radius: 16px; 
+      margin: 20px 16px; 
+      padding: 28px 20px; 
+      text-align: center;
+      border: 1px solid #67ff84;
+      animation: slideInUp 0.5s ease-out;
+    }
+    .welcome h2 {
+      margin-top: 0;
+      color: #67ff84;
+      font-size: 1.4em;
+    }
+    .welcome p {
+      line-height: 1.6;
+      color: #ccc;
+      margin: 12px 0;
+    }
+
     .hidden { display: none !important; }
-    .tabs { background: #2e343b; display: flex; position: fixed; left: 0; right: 0; bottom: 0; height: 58px; border-top: 1px solid #444; }
-    .tab { flex: 1; text-align: center; padding-top: 9px; font-size: 18px; color: #bbb; cursor: pointer; }
-    .tab.active { color: #67ff84; font-weight: bold; }
-    .main-content { padding-bottom: 70px; min-height: 65vh; }
-    .section { display: none; }
-    .section.active { display: block; }
-    /* Кнопки и поля */
-    .gas-calc-box { background: #32383e; border-radius: 13px; margin: 20px 10px 16px 10px; padding: 16px 8px; }
-    .input-group { margin: 15px 0; }
-    label { font-size: 16px; }
-    input[type="number"] { width: 60px; border-radius: 6px; border: none; padding: 7px; font-size: 17px; margin-left: 8px; }
-    select { font-size: 17px; padding: 5px 7px; border-radius: 5px; background: #eee; color: #222; }
-    button { background: #67ff84; color: #222; border: none; border-radius: 8px; padding: 10px 20px; font-size: 17px; cursor: pointer; font-family: inherit; font-weight: bold; }
-    button:active { background: #38ff62; }
-    button.secondary { background: #4a5261; color: #eee; }
-    button.secondary:active { background: #556278; }
-    .fav-list { margin-top: 14px; }
-    .fav-entry { background: #262c32; padding: 10px 12px; border-radius: 7px; margin-bottom: 9px; display: flex; justify-content: space-between; align-items: center }
-    .tag-roundtrip { background: #67ff84; color: #111; border-radius: 9px; font-size: 0.9em; padding: 2px 8px; margin-left: 8px; }
-    .currency-symbol { font-weight: bold; color: #67ff84; }
-    .profile-section { background: #32383e; border-radius: 13px; margin: 20px 10px 16px 10px; padding: 16px 8px; }
-    .profile-stat { margin: 12px 0; font-size: 17px; }
-    .profile-stat-value { color: #67ff84; font-weight: bold; }
-    .button-group { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-    @media (max-width:500px) {
-      .gas-calc-box { margin:14px 2vw 10px 2vw; }
-      .profile-section { margin:14px 2vw 10px 2vw; }
-      .tab { font-size: 15.5px;}
+    
+    .tabs { 
+      background: linear-gradient(to right, #2e343b, #25292e);
+      display: flex; 
+      position: fixed; 
+      left: 0; 
+      right: 0; 
+      bottom: 0; 
+      height: 60px; 
+      border-top: 2px solid #67ff84;
+    }
+    .tab { 
+      flex: 1; 
+      text-align: center; 
+      padding-top: 12px; 
+      font-size: 16px; 
+      color: #888; 
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .tab:hover { 
+      color: #67ff84;
+    }
+    .tab.active { 
+      color: #67ff84; 
+      font-weight: bold;
+    }
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #67ff84;
+    }
+
+    .main-content { 
+      padding-bottom: 80px; 
+      min-height: 65vh; 
+      animation: fadeIn 0.5s ease-out;
+    }
+    .section { 
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+    .section.active { 
+      display: block; 
+    }
+
+    /* Card styles */
+    .card { 
+      background: linear-gradient(135deg, #32383e 0%, #2e343a 100%);
+      border-radius: 14px; 
+      margin: 16px 12px; 
+      padding: 20px; 
+      border: 1px solid rgba(103, 255, 132, 0.15);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      border-color: rgba(103, 255, 132, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .card h3 {
+      margin: 0 0 16px 0;
+      font-size: 1.3em;
+      color: #67ff84;
+    }
+
+    .input-group { 
+      margin: 16px 0; 
+    }
+    label { 
+      font-size: 16px;
+      display: block;
+      margin-bottom: 8px;
+      color: #ccc;
+    }
+    input[type="number"] { 
+      width: 70px; 
+      border-radius: 6px; 
+      border: 1px solid #555; 
+      padding: 8px; 
+      font-size: 16px; 
+      margin-left: 8px;
+      background: #262c32;
+      color: #67ff84;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #67ff84;
+      box-shadow: 0 0 8px rgba(103, 255, 132, 0.3);
+    }
+
+    select { 
+      font-size: 16px; 
+      padding: 8px 10px; 
+      border-radius: 6px;
+      background: #262c32;
+      color: #67ff84;
+      border: 1px solid #555;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    select:hover {
+      border-color: #67ff84;
+    }
+    select:focus {
+      outline: none;
+      border-color: #67ff84;
+      box-shadow: 0 0 8px rgba(103, 255, 132, 0.3);
+    }
+
+    button { 
+      background: linear-gradient(135deg, #67ff84, #4edd77);
+      color: #222; 
+      border: none; 
+      border-radius: 8px; 
+      padding: 11px 22px; 
+      font-size: 16px; 
+      cursor: pointer; 
+      font-family: inherit;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(103, 255, 132, 0.2);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(103, 255, 132, 0.4);
+    }
+    button:active { 
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(103, 255, 132, 0.2);
+    }
+
+    button.secondary { 
+      background: linear-gradient(135deg, #4a5261, #3d4552);
+      color: #ddd;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    button.secondary:hover {
+      background: linear-gradient(135deg, #556278, #485563);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    button.small {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, #ff6b6b, #ff5252);
+    }
+    button.danger:hover {
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    }
+
+    /* Currency selector */
+    .currency-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .currency-btn {
+      background: #262c32;
+      border: 2px solid #555;
+      border-radius: 10px;
+      padding: 14px 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      font-size: 14px;
+      color: #aaa;
+      font-family: inherit;
+    }
+    .currency-btn:hover {
+      border-color: #67ff84;
+      color: #67ff84;
+    }
+    .currency-btn.active {
+      background: linear-gradient(135deg, #67ff84, #4edd77);
+      border-color: #67ff84;
+      color: #222;
+      font-weight: bold;
+      box-shadow: 0 0 20px rgba(103, 255, 132, 0.3);
+      transform: scale(1.05);
+    }
+    .currency-flag {
+      font-size: 1.8em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* Fav list */
+    .fav-list { 
+      margin-top: 16px; 
+    }
+    .fav-entry { 
+      background: linear-gradient(135deg, #262c32 0%, #1f2428 100%);
+      padding: 14px; 
+      border-radius: 10px; 
+      margin-bottom: 12px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      border: 1px solid rgba(103, 255, 132, 0.1);
+      transition: all 0.3s ease;
+      animation: slideInUp 0.3s ease-out;
+    }
+    .fav-entry:hover {
+      border-color: rgba(103, 255, 132, 0.3);
+      background: linear-gradient(135deg, #2e343a 0%, #262c32 100%);
+    }
+    .fav-entry-info {
+      flex: 1;
+    }
+    .fav-entry-name {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .fav-entry-stats {
+      font-size: 13px;
+      color: #999;
+      line-height: 1.4;
+    }
+    .fav-entry-buttons {
+      display: flex;
+      gap: 6px;
+      margin-left: 12px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #555;
+      color: #eee;
+      border-radius: 6px;
+      font-size: 0.85em;
+      padding: 3px 8px;
+      margin-left: 8px;
+      margin-right: 4px;
+    }
+    .tag-roundtrip { 
+      background: linear-gradient(135deg, #67ff84, #4edd77);
+      color: #222;
+      font-weight: bold;
+    }
+
+    .currency-symbol { 
+      font-weight: bold; 
+      color: #67ff84;
+      font-size: 1.05em;
+    }
+
+    /* Profile section */
+    .profile-card {
+      background: linear-gradient(135deg, #32383e 0%, #2e343a 100%);
+      border-radius: 14px;
+      margin: 16px 12px;
+      padding: 20px;
+      border: 1px solid rgba(103, 255, 132, 0.15);
+    }
+
+    .profile-stat {
+      margin: 14px 0;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: rgba(103, 255, 132, 0.05);
+      border-radius: 8px;
+      border-left: 3px solid #67ff84;
+    }
+    .profile-stat-label {
+      color: #aaa;
+    }
+    .profile-stat-value { 
+      color: #67ff84; 
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .button-group { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px; 
+      margin-top: 20px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #666;
+      padding: 24px;
+      font-size: 14px;
+    }
+
+    .calc-result {
+      background: rgba(103, 255, 132, 0.1);
+      border-left: 3px solid #67ff84;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 14px 0;
+      font-size: 16px;
+      animation: slideInUp 0.4s ease-out;
+    }
+
+    @media (max-width: 500px) {
+      .currency-selector {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .tab { font-size: 14px; padding-top: 14px; }
+      .app-title { font-size: 1.5em; }
+      .card { margin: 12px 8px; }
+      .profile-card { margin: 12px 8px; }
+      .fav-entry {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .fav-entry-buttons {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 10px;
+      }
+      .fav-entry-buttons button {
+        flex: 1;
+      }
     }
   </style>
 </head>
 <body>
   <div class="logo">
-    <!-- SVG Логотип -->
     <svg class="logo-svg" viewBox="0 0 90 90" fill="none"><circle cx="45" cy="45" r="45" fill="#67ff84"/><rect x="18" y="61" width="53" height="11" rx="5.5" fill="#25292e"/><rect x="26" y="31" width="37" height="33" rx="8" fill="#222"/><rect x="28.5" y="33.5" width="32" height="28" rx="6.5" fill="#25292e"/><rect x="37" y="41" width="6" height="12" rx="2" fill="#67ff84"/><rect x="47" y="41" width="6" height="12" rx="2" fill="#67ff84"/><circle cx="55" cy="61" r="3" fill="#67ff84"/><circle cx="35" cy="61" r="3" fill="#67ff84"/></svg>
     <div class="app-title">GARAGE STATS</div>
+    <div class="app-subtitle">⚡ FUEL TRACKER ⚡</div>
   </div>
 
   <div id="welcome" class="welcome hidden">
-    <h2>Добро пожаловать!</h2>
-    <p>Это твой новый помощник для контроля расходов на авто.<br>
-    Веди и анализируй все свои траты и поездки!<br>
-    Вода камень точет 🚗</p>
-    <button onclick="closeWelcome()">Погнали!</button>
+    <h2>🚗 Добро пожаловать!</h2>
+    <p>Это твой помощник для контроля расходов на авто.<br>
+    Веди и анализируй все свои траты и поездки.<br>
+    <b>Вода камень точет</b> 💧</p>
+    <button onclick="closeWelcome()" style="margin-top:14px;">Погнали! 🚀</button>
   </div>
 
   <div class="main-content">
-    <!-- ВКЛАДКИ -->
+    <!-- КАЛЬКУЛЯТОР -->
     <div id="calc-section" class="section active">
-      <!-- Калькулятор расхода -->
-      <div class="gas-calc-box">
+      <div class="card">
+        <h3>💧 Калькулятор расхода</h3>
         <form id="calc-form" onsubmit="return false;">
           <div class="input-group">
-            <label>Тип езды:
-              <select id="driveType" onchange="updateConsumption()">
-                <option value="eco">Экономный</option>
-                <option value="normal" selected>Средний</option>
-                <option value="fast">На все бабки</option>
-              </select>
-            </label>
+            <label>Тип езды:</label>
+            <select id="driveType" onchange="updateConsumption()">
+              <option value="eco">🟢 Экономный</option>
+              <option value="normal" selected>🟡 Средний</option>
+              <option value="fast">🔴 На все бабки</option>
+            </select>
           </div>
           <div class="input-group">
-            <label>Расход (л/100км):
-              <span id="consumption">7.0</span>
-            </label>
+            <label>Расход (л/100км): <b id="consumption">7.0</b></label>
           </div>
           <div class="input-group">
             <label>Дистанция (км): <input type="number" id="distance" value="100" min="1" max="10000"/></label>
@@ -85,58 +455,70 @@
           <div class="input-group">
             <label>Цена топлива (<span id="price-currency-label">₽</span>/л): <input type="number" id="price" value="55" min="0.1" max="500" step="0.1"/></label>
           </div>
-          <button type="button" onclick="calculate()">Рассчитать</button>
+          <button type="button" onclick="calculate()" style="width:100%;">Рассчитать</button>
         </form>
-        <div style="margin-top:10px;font-size:1.03em;" id="calc-result"></div>
-        <button type="button" style="margin-top:8px;" onclick="addFavoriteTrip()">☆ В избранное</button>
+        <div id="calc-result"></div>
+        <button type="button" style="margin-top:10px;width:100%;" onclick="addFavoriteTrip()">☆ В избранное</button>
       </div>
-      <!-- Избранные поездки -->
-      <div>
-        <h3>Избранные поездки</h3>
+
+      <div class="card">
+        <h3>⭐ Избранные поездки</h3>
         <div id="fav-list" class="fav-list"></div>
       </div>
     </div>
 
+    <!-- ГАРАЖ -->
     <div id="garage-section" class="section">
-      <div class="gas-calc-box">
-        <h3>Гараж 🚙</h3>
-        <div>Твоя коллекция железных коней: <br><br>
-        <span style="color:#aaa">(функционал для добавления авто скоро появится!)</span>
-        </div>
+      <div class="card">
+        <h3>🚙 Гараж</h3>
+        <p style="color:#999;margin:14px 0;">Твоя коллекция железных коней</p>
+        <p style="color:#666;font-size:14px;margin-bottom:0;">(функционал для добавления авто скоро появится!)</p>
       </div>
     </div>
 
+    <!-- ПРОФИЛЬ -->
     <div id="profile-section" class="section">
-      <div class="profile-section">
-        <h3>Профиль</h3>
+      <div class="profile-card">
+        <h3>👤 Профиль</h3>
         
-        <!-- Выбор валюты -->
-        <div class="input-group">
-          <label style="display:block;">Выбери валюту:
-            <select id="currencySelect" onchange="changeCurrency()" style="margin-top:8px;">
-              <option value="RUB">🇷🇺 RUB (₽)</option>
-              <option value="BYN">🇧🇾 BYN (Br)</option>
-              <option value="USD">🇺🇸 USD ($)</option>
-            </select>
-          </label>
+        <div style="margin:20px 0;">
+          <label style="margin-bottom:12px;display:block;color:#ccc;">Выбери валюту:</label>
+          <div class="currency-selector">
+            <div class="currency-btn active" onclick="selectCurrency('RUB')">
+              <span class="currency-flag">🇷🇺</span>
+              <div>RUB</div>
+              <div style="font-size:12px;color:#999;">₽</div>
+            </div>
+            <div class="currency-btn" onclick="selectCurrency('BYN')">
+              <span class="currency-flag">🇧🇾</span>
+              <div>BYN</div>
+              <div style="font-size:12px;color:#999;">Br</div>
+            </div>
+            <div class="currency-btn" onclick="selectCurrency('USD')">
+              <span class="currency-flag">🇺🇸</span>
+              <div>USD</div>
+              <div style="font-size:12px;color:#999;">$</div>
+            </div>
+          </div>
         </div>
 
-        <!-- Статистика -->
-        <div id="profile-info"></div>
+        <div style="margin-top:20px; padding-top:20px; border-top:1px solid #555;">
+          <h4 style="margin:0 0 14px 0;color:#ccc;">Твоя статистика:</h4>
+          <div id="profile-info"></div>
+        </div>
 
-        <!-- Кнопки -->
         <div class="button-group">
-          <button class="secondary" onclick="openTelegram()">💬 Написать пожелания и идеи</button>
-          <button class="secondary" onclick="clearAllData()">🗑️ Сбросить всё</button>
+          <button class="secondary" onclick="openTelegram()" style="width:100%;">💬 Пожелания и идеи</button>
+          <button class="secondary" onclick="clearAllData()" style="width:100%;">🗑️ Сбросить всё</button>
         </div>
       </div>
     </div>
   </div>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('calc')">Калькулятор</div>
-    <div class="tab" onclick="switchTab('garage')">Гараж</div>
-    <div class="tab" onclick="switchTab('profile')">Профиль</div>
+    <div class="tab active" onclick="switchTab('calc')">📊 Калькулятор</div>
+    <div class="tab" onclick="switchTab('garage')">🚙 Гараж</div>
+    <div class="tab" onclick="switchTab('profile')">👤 Профиль</div>
   </div>
 
   <script>
@@ -144,7 +526,7 @@
     const currencySymbols = { RUB: '₽', BYN: 'Br', USD: '$' };
     const telegramLink = 'https://t.me/History_deleted';
 
-    // --- Get current currency ---
+    // --- Currency functions ---
     function getCurrency() {
       return localStorage.getItem('gs-currency') || 'RUB';
     }
@@ -152,7 +534,30 @@
       localStorage.setItem('gs-currency', curr);
     }
 
-    // --- Welcome popup ---
+    function selectCurrency(curr) {
+      setCurrency(curr);
+      updateCurrencyDisplay();
+      renderFavorites();
+      updateProfile();
+    }
+
+    function updateCurrencyDisplay() {
+      const curr = getCurrency();
+      const symbol = currencySymbols[curr];
+      document.getElementById('price-currency-label').innerText = symbol;
+      
+      // Update button states
+      document.querySelectorAll('.currency-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelectorAll('.currency-btn').forEach((btn, idx) => {
+        if ((['RUB', 'BYN', 'USD'][idx]) === curr) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    // --- Welcome ---
     function showWelcome() {
       if (!localStorage.getItem('gs-welcomed')) {
         document.getElementById('welcome').classList.remove('hidden');
@@ -168,31 +573,15 @@
 
     // --- Tabs ---
     function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
-      document.querySelectorAll('.section').forEach((el) => el.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
       const tabIndex = ['calc', 'garage', 'profile'].indexOf(tab);
       document.querySelectorAll('.tab')[tabIndex].classList.add('active');
       document.getElementById(tab+'-section').classList.add('active');
-      if (tab==='profile') updateProfile();
+      if (tab === 'profile') updateProfile();
     }
 
-    // --- Currency change ---
-    function changeCurrency() {
-      const newCurr = document.getElementById('currencySelect').value;
-      setCurrency(newCurr);
-      updateCurrencyDisplay();
-      renderFavorites();
-      updateProfile();
-    }
-
-    function updateCurrencyDisplay() {
-      const curr = getCurrency();
-      const symbol = currencySymbols[curr];
-      document.getElementById('price-currency-label').innerText = symbol;
-      document.getElementById('currencySelect').value = curr;
-    }
-
-    // --- Calculator logic ---
+    // --- Calculator ---
     function updateConsumption() {
       const t = document.getElementById('driveType').value;
       document.getElementById('consumption').innerText = consumptionByType[t].toFixed(1);
@@ -209,13 +598,18 @@
 
       const liters = cons * distance / 100;
       const cost = liters * price;
-      document.getElementById('calc-result').innerHTML =
-        `Потратишь <b>${liters.toFixed(2)} литра</b>, что = <b class="currency-symbol">${cost.toFixed(0)} ${symbol}</b>`;
+      
+      document.getElementById('calc-result').innerHTML = `
+        <div class="calc-result">
+          Потратишь <b>${liters.toFixed(2)} л</b> топлива<br>
+          Стоимость: <b class="currency-symbol">${cost.toFixed(0)} ${symbol}</b>
+        </div>
+      `;
 
       return {cons, distance, price, liters, cost, currency};
     }
 
-    // --- Favorites logic ---
+    // --- Favorites ---
     function loadFavorites() {
       return JSON.parse(localStorage.getItem('gs-fav-trips') || '[]');
     }
@@ -259,29 +653,30 @@
       const currentCurrency = getCurrency();
       let html = '';
       if (favs.length === 0) {
-        html = '<div style="color:#888;margin-top:10px;">Нет поездок в избранном</div>';
+        html = '<div class="empty-state">Нет поездок в избранном</div>';
       } else {
-        favs.forEach((f,i) => {
+        favs.forEach((f, i) => {
           const cons = consumptionByType[f.type];
           let liters = cons * f.distance / 100;
           let cost = liters * f.price;
           if (f.isRoundTrip) { liters *= 2; cost *= 2; }
           const symbol = currencySymbols[currentCurrency];
+          const typeLabel = {eco:"🟢 Эконом", normal:"🟡 Средний", fast:"🔴 На все бабки"}[f.type];
+          
           html += `
           <div class="fav-entry">
-            <div>
-              <b>${f.name}</b>
-              <span style="background:#555;color:#eee;border-radius:6px;font-size:0.85em;padding:2px 6px;margin-left:8px;">${({
-                eco:"Эконом",normal:"Средний",fast:"На все бабки"
-              })[f.type]}</span>
-              ${f.isRoundTrip?'<span class="tag-roundtrip">×2 туда-обратно</span>':''}<br>
-              <span style="font-size:13.5px;">
-                ${liters.toFixed(2)} л, <span class="currency-symbol">${cost.toFixed(0)} ${symbol}</span>, ${f.distance}км
-              </span>
+            <div class="fav-entry-info">
+              <div class="fav-entry-name">${f.name}</div>
+              <div class="fav-entry-stats">
+                <span class="tag">${typeLabel}</span>
+                ${f.isRoundTrip ? '<span class="tag tag-roundtrip">×2 туда-обратно</span>' : ''}
+                <br>
+                ${liters.toFixed(2)} л • <span class="currency-symbol">${cost.toFixed(0)} ${symbol}</span> • ${f.distance}км
+              </div>
             </div>
-            <div style="display:flex;gap:6px;">
-              <button style="padding:5px 8px;font-size:13px;" onclick="toggleRoundTrip(${i})">${f.isRoundTrip?'Обычная':'×2'}</button>
-              <button style="padding:5px 8px;font-size:13px;background:#ff6b6b;" onclick="deleteFavorite(${i})">✕</button>
+            <div class="fav-entry-buttons">
+              <button class="small secondary" onclick="toggleRoundTrip(${i})">${f.isRoundTrip?'Обычная':'×2'}</button>
+              <button class="small danger" onclick="deleteFavorite(${i})">✕</button>
             </div>
           </div>`;
         });
@@ -290,33 +685,43 @@
     }
     renderFavorites();
 
-    // --- Профиль ---
+    // --- Profile ---
     function updateProfile() {
       const favs = loadFavorites();
       const currentCurrency = getCurrency();
       const symbol = currencySymbols[currentCurrency];
       let cnt = favs.length;
       let liters = 0, rub = 0;
-      favs.forEach(f=>{
-        let l = consumptionByType[f.type]*f.distance/100 * (f.isRoundTrip?2:1);
-        let r = l*f.price;
-        liters += l; rub += r;
+      favs.forEach(f => {
+        let l = consumptionByType[f.type] * f.distance / 100 * (f.isRoundTrip ? 2 : 1);
+        let r = l * f.price;
+        liters += l;
+        rub += r;
       });
       document.getElementById('profile-info').innerHTML = `
-        <div class="profile-stat">Всего поездок: <span class="profile-stat-value">${cnt}</span></div>
-        <div class="profile-stat">Потрачено топлива: <span class="profile-stat-value">${liters.toFixed(1)} л</span></div>
-        <div class="profile-stat">Потрачено денег: <span class="profile-stat-value">${rub.toFixed(0)} ${symbol}</span></div>
+        <div class="profile-stat">
+          <span class="profile-stat-label">📍 Поездок:</span>
+          <span class="profile-stat-value">${cnt}</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-label">⛽ Топлива потрачено:</span>
+          <span class="profile-stat-value">${liters.toFixed(1)} л</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-label">💰 Денег потрачено:</span>
+          <span class="profile-stat-value">${rub.toFixed(0)} ${symbol}</span>
+        </div>
       `;
     }
 
-    // --- Open Telegram ---
+    // --- Telegram ---
     function openTelegram() {
       window.open(telegramLink, '_blank');
     }
 
-    // --- Сброс ---
+    // --- Clear ---
     function clearAllData() {
-      if (confirm('Точно стереть ВСЁ? Действие необратимо!')) {
+      if (confirm('Точно стереть ВСЁ? Это необратимо!')) {
         localStorage.removeItem('gs-fav-trips');
         localStorage.removeItem('gs-welcomed');
         renderFavorites();
@@ -325,7 +730,7 @@
       }
     }
 
-    // --- Init on load ---
+    // --- Init ---
     updateCurrencyDisplay();
   </script>
 </body>
